@@ -10,9 +10,6 @@ jobs:
         os: [ubuntu-latest]
         compiler: [go, tinygo]
     runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        working-directory: /
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -39,9 +36,6 @@ jobs:
         go-version: [1.25]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        working-directory: /
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
