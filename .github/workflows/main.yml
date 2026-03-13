@@ -16,6 +16,7 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
           cache-dependency-path: go/go.sum
+      - name: Generate proto code
+        run: make proto_go
       - name: Test
-        working-directory: go
-        run: go test -v ./...
+        run: go test -C go -v ./...

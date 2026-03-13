@@ -10,7 +10,8 @@ default: help
 prepare: ## Prepare environment
 	dart pub global activate protoc_plugin
 	go mod -C go tidy
-	$(call PROTO)
+	$(call PROTO_GO)
+	$(call PROTO_DART)
 ifeq ($(wildcard web/.),)
 		flutter create -e --platforms=web .
 		$(call UPDATE_WEB)
@@ -192,11 +193,15 @@ define NATIVE_BRIDGE
 endef
 
 proto: ## Generate protobuf code
-	$(call PROTO)
+	$(call PROTO_GO)
+	$(call PROTO_DART)
 .PHONY: proto
 
-define PROTO
-	go install -C go/cmd/protoc-gen-flap-dart-connect
+proto_go: ## Generate protobuf Go code
+	$(call PROTO_GO)
+.PHONY: proto_go
+
+define PROTO_GO
 	go install -C go/cmd/protoc-gen-flap-go-connect
 	# 0. Clean proto gen files
 	rm -rf go/pb/*
@@ -241,6 +246,10 @@ define PROTO
 	rmdir go/pb/tmp_std
 	# 9. Generate MarshalVT wrappers for standard Go
 	go run go/cmd/gen_marshal_std/main.go go/pb
+endef
+
+define PROTO_DART
+	go install -C go/cmd/protoc-gen-flap-dart-connect
 	# 10. Generate Dart code
 	protoc -I=proto \
 		--plugin protoc-gen-flap-dart-connect="$(shell go env GOBIN)/protoc-gen-flap-dart-connect" \
