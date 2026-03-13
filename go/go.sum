@@ -6,6 +6,8 @@ github.com/1l0/go-wasmsqlite v0.0.0-20251123143527-81cad988c1e2 h1:l9GMRatYwqPc8
 github.com/1l0/go-wasmsqlite v0.0.0-20251123143527-81cad988c1e2/go.mod h1:kb+P0/ZuAe7KA+icaQvL4ixMYiwNBNLyRYs3xSI1kE4=
 github.com/1l0/nostr-sqlite v0.7.0 h1:vimhnkxfHvQiU7+DtAb0zn0Atc+7Nz9qacYv4mgKWIk=
 github.com/1l0/nostr-sqlite v0.7.0/go.mod h1:5mrC3MhUux+La+ILK0w8REun8QSSV1GGG/rirg6xqpc=
+github.com/1l0/nostrlib v0.0.0-20260309112724-8d93f8c49d07 h1:QamHPWhWBMP8qotqWAYcjL5DK0pczStS++9zfoR3H6M=
+github.com/1l0/nostrlib v0.0.0-20260309112724-8d93f8c49d07/go.mod h1:kDP5jRpUmrt4Z7RIjb7xHx7ubKempZflF/ISdin5DeY=
 github.com/FastFilter/xorfilter v0.2.1 h1:lbdeLG9BdpquK64ZsleBS8B4xO/QW1IM0gMzF7KaBKc=
 github.com/FastFilter/xorfilter v0.2.1/go.mod h1:aumvdkhscz6YBZF9ZA/6O4fIoNod4YR50kIVGGZ7l9I=
 github.com/ImVexed/fasturl v0.0.0-20230304231329-4e41488060f3 h1:ClzzXMDDuUbWfNNZqGeYq4PnYOlwlOVIvSyNaIy0ykg=

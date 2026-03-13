@@ -2,7 +2,7 @@ module flap
 
 go 1.25.0
 
-replace fiatjaf.com/nostr => ./../../../../ngit/fiatjaf/nostrlib
+replace fiatjaf.com/nostr => github.com/1l0/nostrlib v0.0.0-20260309112724-8d93f8c49d07
 
 require (
 	connectrpc.com/connect v1.19.1
