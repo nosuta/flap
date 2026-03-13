@@ -25,6 +25,8 @@ jobs:
           sudo dpkg -i tinygo_${{ matrix.tinygo-version }}_amd64.deb
       - name: Install chrome
         uses: browser-actions/setup-chrome@latest
+      - name: Update web
+        run: make update_web
       - name: Install go_js_wasm_exec
         run: make prepare_go_wasm_test
       - name: Test
