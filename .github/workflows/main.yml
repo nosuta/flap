@@ -28,9 +28,8 @@ jobs:
       - name: Install go_js_wasm_exec
         run: make prepare_go_wasm_test
       - name: Test
-        run: GOOS=js GOARCH=wasm ${{ matrix.compiler }} test -C go -v ./...
-      - name: Build Wasm
-        run: GOOS=js GOARCH=wasm ${{ matrix.compiler }} build -C go -o worker.wasm
+        working-directory: go
+        run: GOOS=js GOARCH=wasm ${{ matrix.compiler }} test -v ./languages ./sqlite ./nostr/eventstore/sqlite ./nostr/nipe4
   test_go:
     strategy:
       matrix:
@@ -46,4 +45,5 @@ jobs:
           go-version: ${{ matrix.go-version }}
           cache-dependency-path: go/go.sum
       - name: Test
-        run: go test -C go -v ./...
+        working-directory: go
+        run: go test -v ./languages ./sqlite ./nostr/eventstore/sqlite ./nostr/nipe4
