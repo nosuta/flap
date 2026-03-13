@@ -211,7 +211,7 @@ define PROTO_GO
 		--plugin protoc-gen-go="$(shell go tool -C go -n protoc-gen-go)" \
 		--go_out=go --go_opt=module=flap **/*.proto
 	protoc -I=proto \
-		--plugin protoc-gen-go="$(shell go tool -C go -n protoc-gen-connect-go)" \
+		--plugin protoc-gen-connect-go="$(shell go tool -C go -n protoc-gen-connect-go)" \
 		--connect-go_out=go --connect-go_opt=module=flap,paths=import \
 		proto/echo.proto
 	# 2. Add build tag to standard Go files
