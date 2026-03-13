@@ -20,6 +20,7 @@ Build cross-platform Flutter apps with embedded Go.
 
 - Go
 - Flutter
+- protoc
 - perl
 - npm (for Web)
 - TinyGo (for Web)
