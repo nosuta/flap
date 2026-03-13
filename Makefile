@@ -239,7 +239,7 @@ define PROTO_GO
 	mv go/pb/*.pb.go go/pb/tmp_std/
 	# 5. Generate Lite Go Protobuf (for JS/TinyGo)
 	protoc -I=proto \
-		--plugin protoc-gen-go-lite="$(shell go env GOBIN)/protoc-gen-go-lite" \
+		--plugin protoc-gen-go-lite="$(shell go tool -C go -n protoc-gen-go-lite)" \
 		--plugin protoc-gen-flap-go-connect="$(shell go env GOBIN)/protoc-gen-flap-go-connect" \
 		--go-lite_out=go --go-lite_opt=module=flap,features=marshal+unmarshal+size+equal+clone \
 		--flap-go-connect_out=go --flap-go-connect_opt=module=flap \

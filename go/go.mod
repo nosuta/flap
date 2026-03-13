@@ -9,7 +9,7 @@ require (
 	fiatjaf.com/nostr v0.0.0-20260312140001-bb4093d834af
 	github.com/1l0/go-wasmsqlite v0.0.0-20251123143527-81cad988c1e2
 	github.com/1l0/nostr-sqlite v0.7.0
-	github.com/aperturerobotics/protobuf-go-lite v0.11.0
+	github.com/aperturerobotics/protobuf-go-lite v0.12.2
 	github.com/btcsuite/btcd/btcec/v2 v2.3.6
 	golang.org/x/exp v0.0.0-20260312153236-7ab1446f8b90
 	google.golang.org/protobuf v1.36.11
@@ -65,5 +65,6 @@ require (
 
 tool (
 	connectrpc.com/connect/cmd/protoc-gen-connect-go
+	github.com/aperturerobotics/protobuf-go-lite/cmd/protoc-gen-go-lite
 	google.golang.org/protobuf/cmd/protoc-gen-go
 )
