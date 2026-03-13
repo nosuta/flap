@@ -1,0 +1,53 @@
+name: CI
+on: push
+
+jobs:
+  test_go_wasm:
+    strategy:
+      matrix:
+        go-version: [1.25]
+        tinygo-version: [0.40.1]
+        os: [ubuntu-latest]
+        compiler: [go, tinygo]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: go
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Install TinyGo
+        if: matrix.compiler == 'tinygo'
+        run: |
+          wget https://github.com/tinygo-org/tinygo/releases/download/${{ matrix.tinygo-version }}/tinygo_${{ matrix.tinygo-version }}_amd64.deb
+          sudo dpkg -i tinygo_${{ matrix.tinygo-version }}_amd64.deb
+      - name: Install chrome
+        uses: browser-actions/setup-chrome@latest
+      - name: Install go_js_wasm_exec
+        run: make prepare_go_wasm_test
+      - name: Test
+        run: GOOS=js GOARCH=wasm ${{ matrix.compiler }} test -C go -v ./...
+      - name: Build Wasm
+        run: GOOS=js GOARCH=wasm ${{ matrix.compiler }} build -C go -o worker.wasm
+  test_go:
+    strategy:
+      matrix:
+        go-version: [1.25]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: go
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Test
+        run: GOOS=js GOARCH=wasm ${{ matrix.compiler }} test -C go -v ./...

@@ -1,0 +1,9 @@
+name: "NativeLibrary"
+output: "lib/bridge/native_library.g.dart"
+headers:
+  entry-points:
+    - "exported.h"
+# ignore-source-errors: true
+silence-enum-warning: true
+# compiler-opts:
+#   - "-Wall"

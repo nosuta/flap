@@ -1,1 +1,81 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
 .DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# protobuf
+
+/go/pb/*
+/lib/pb/*
+
+# Project specific
+.tmp/
+.env
+custom.mk
+web/wasm_exec.js
+web/sqlite3-opfs-async-proxy.js
+web/sqlite3.js
+web/sqlite3.wasm
+go/cmd/go_js_wasm_exec/sqlite3-opfs-async-proxy.js
+go/cmd/go_js_wasm_exec/sqlite3.js
+go/cmd/go_js_wasm_exec/sqlite3.wasm
+packages/web_internal/lib/worker.wasm
+node_modules
+package.json
+package-lock.json
+go/build
+go.sum
+*.so
+*.dylib
+*.a
+/exported.h
+*.g.dart
+TODO.md
+
+# delete these before the flap release, these should be commited
+/macos
+/android
+/ios
+/web
+

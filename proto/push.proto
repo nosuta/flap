@@ -1,0 +1,9 @@
+syntax = "proto3";
+// Dart package name
+package pb;
+// Go package name
+option go_package = "flap/pb";
+
+message PushNip05 {
+    string id = 1;
+}

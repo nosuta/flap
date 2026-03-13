@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html oncontextmenu="event.preventDefault();">
+
+<head>
+    <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+    <base href="/">
+
+    <meta charset="UTF-8">
+    <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+    <meta name="description" content="nosuta">
+
+    <!-- iOS meta tags & icons -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="wasm_worker_testbed">
+    <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.png" />
+
+    <title>nosuta</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        html {
+            color: #828282;
+            background-color: rgb(0, 0, 0);
+        }
+
+        body {
+            display: flex;
+            height: 95vh;
+            align-items: center;
+            justify-content: center;
+        }
+
+
+        #loading,
+        #loading div,
+        #loading div:after,
+        #loading div:before {
+            box-sizing: border-box;
+        }
+
+        #loading {
+            display: inline-block;
+            position: relative;
+            width: 80px;
+            height: 80px;
+            transform: rotate(45deg);
+            transform-origin: 40px 40px;
+        }
+
+        #loading div {
+            top: 28px;
+            left: 28px;
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            background: currentColor;
+            animation: lds-heart 1.2s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+        }
+
+        #loading div:after,
+        #loading div:before {
+            content: " ";
+            position: absolute;
+            display: block;
+            width: 32px;
+            height: 32px;
+            background: currentColor;
+        }
+
+        #loading div:before {
+            left: -24px;
+            border-radius: 50% 0 0 50%;
+        }
+
+        #loading div:after {
+            top: -24px;
+            border-radius: 50% 50% 0 0;
+        }
+
+        @keyframes lds-heart {
+            0% {
+                transform: scale(0.95);
+            }
+
+            5% {
+                transform: scale(1.1);
+            }
+
+            39% {
+                transform: scale(0.85);
+            }
+
+            45% {
+                transform: scale(1);
+            }
+
+            60% {
+                transform: scale(0.95);
+            }
+
+            100% {
+                transform: scale(0.9);
+            }
+        }
+
+
+
+        @media (prefers-color-scheme: light) {
+            html {
+                color: #000;
+                background-color: rgb(255, 255, 255);
+            }
+
+
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loading">
+        <div></div>
+    </div>
+    <script src="flutter_bootstrap.js" async></script>
+</body>
+
+</html>

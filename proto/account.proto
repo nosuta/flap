@@ -1,0 +1,20 @@
+syntax = "proto3";
+// Dart package name
+package pb;
+// Go package name
+option go_package = "flap/pb";
+
+enum AccountType {
+  BROWSER_EXTENSION = 0;
+  BUNKER = 1;
+  NSEC = 2;
+}
+
+message Account {
+  AccountType type = 1;
+  string publicKey = 2;
+  string privateKey = 3;
+  string sessionKey = 4;
+}
+
+message Accounts { repeated Account accounts = 1; }

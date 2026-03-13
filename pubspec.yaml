@@ -1,0 +1,73 @@
+name: flap
+description: "flap"
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.1
+workspace:
+  - packages/native_internal
+  - packages/web_internal
+
+dependencies:
+  web_internal:
+    path: packages/web_internal
+  native_internal:
+    path: packages/native_internal
+  hexpattern:
+    path: ../hexpattern
+  statescope: ^3.0.0
+  super_sliver_list:
+    git:
+      url: https://github.com/1l0/super_sliver_list.git
+      ref: pre-correction
+
+  flutter:
+    sdk: flutter
+  flutter_web_plugins:
+    sdk: flutter
+  flutter_secure_storage: ^10.0.0-beta.5
+  cupertino_icons: ^1.0.8
+  web: ^1.1.1
+  # google_fonts: ^6.2.1
+  protobuf: ^6.0.0
+  logging: ^1.3.0
+  cached_network_image: ^3.4.1
+  fixnum: ^1.1.1
+  timeago: ^3.7.1
+  flutter_slidable: ^4.0.0
+  stts: ^1.2.4
+  devicelocale: ^0.8.1
+  translator: ^1.0.3+1
+  skeletonizer: ^2.1.0+1
+  flutter_animate: ^4.5.2
+  ffi: ^2.1.4
+  path_provider: ^2.1.5
+  connectrpc: ^1.0.0
+
+dependency_overrides:
+  protobuf: ^6.0.0 # force connectrpc to use newer version
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  ffigen: ^20.1.1
+
+flutter:
+  fonts:
+    - family: NotoSansJP
+      fonts:
+        - asset: fonts/NotoSansJP-Regular.ttf
+        - asset: fonts/NotoSansJP-Bold.ttf
+          weight: 700
+    - family: NotoColorEmoji
+      fonts:
+        - asset: fonts/NotoColorEmoji-Regular.ttf
+  assets:
+    - packages/web_internal/worker.wasm
+    # - path: packages/web_internal/worker.wasm
+    # platforms: [web]
+
+  uses-material-design: true

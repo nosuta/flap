@@ -1,0 +1,31 @@
+// Code as template. DO NOT EDIT.
+
+syntax = "proto3";
+// Dart package name
+package pb;
+// Go package name
+option go_package = "flap/pb";
+
+message Error {
+  int32 code = 1;
+  string message = 2;
+}
+
+message Cancel {
+  int64 port = 3;
+  int32 code = 1;
+  string message = 2;
+}
+
+message Done {
+  int32 code = 1;
+  string message = 2;
+}
+
+message Init {
+  int64 pushPort = 1;
+  string tempDir = 2;
+  string supportDir = 3;
+  string documentsDir = 4;
+  string appEncryptionKey = 5;
+}

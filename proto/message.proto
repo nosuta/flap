@@ -1,0 +1,54 @@
+syntax = "proto3";
+// Dart package name
+package pb;
+// Go package name
+option go_package = "flap/pb";
+import "core.proto";
+import "push.proto";
+
+// TODO: import your proto
+import "nostr.proto";
+import "account.proto";
+
+message Request {
+  int64 port = 5;
+  oneof requests {
+    Init init = 1;
+    Cancel cancel = 4;
+    // TODO: add your requests here
+    // GetProfile getProfile = 2;
+    // GetNotes getNotes = 3;
+    ConnectRequest connectRequest = 10;
+  }
+}
+
+message Response {
+  oneof responses {
+    Error error = 1;
+    Done done = 6;
+    Push push = 7;
+    Request request = 8;
+    // TODO: add your responses here
+    // Profile profile = 2;
+    // Note note = 3;
+    // Notes notes = 4;
+    // Account account = 5;
+    ConnectResponse connectResponse = 10;
+  }
+}
+
+message ConnectRequest {
+  string path = 1;
+  bytes payload = 2;
+}
+
+message ConnectResponse { bytes payload = 1; }
+
+message Push {
+  oneof type {
+    Error error = 1;
+    // TODO: ad your pushes here
+    Note note = 2 [deprecated = true];
+    PushNip05 nip05 = 3;
+  }
+}

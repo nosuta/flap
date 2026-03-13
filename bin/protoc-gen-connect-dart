@@ -1,0 +1,2 @@
+#!/bin/bash
+dart /Users/rs/.pub-cache/hosted/pub.dev/connectrpc-1.0.0/bin/protoc-gen-connect-dart.dart "$@"

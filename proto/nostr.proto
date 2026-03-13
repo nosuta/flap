@@ -1,0 +1,62 @@
+syntax = "proto3";
+// Dart package name
+package pb;
+// Go package name
+option go_package = "flap/pb";
+
+message GetProfile { string pubkey = 1; }
+
+message GetNotes {
+  string topic = 3;
+  oneof ranges {
+    TimeRange range = 1;
+    bool noRange = 2;
+  }
+}
+
+message TimeRange {
+  int64 since = 1;
+  int64 until = 2;
+}
+
+message Profile {
+  string pubkey = 1;
+  string name = 2;
+  string dns_id = 3;
+  string picture = 4;
+  string website = 6;
+  string banner = 7;
+  bool bot = 8;
+  string lud06 = 9;
+  string lud16 = 10;
+
+  bool dns_id_verified = 11;
+  string dns_id_icon = 12;
+}
+
+message Note {
+  string id = 8;
+  string lang = 15;
+  string nevent = 1;
+  string pubkey = 2;
+  string npub = 10;
+  string subject = 11;
+  string content = 3;
+  int64 created_at = 4;
+  string event_json = 5;
+  repeated string relays = 6;
+  string client = 7;
+  Profile profile = 9;
+  Note replyTo = 13;
+  Note replyRoot = 14;
+  repeated Profile repostedBy = 12;
+  bool translated = 16;
+  string translatedContent = 17;
+}
+
+message Notes { repeated Note notes = 1; }
+
+service NostrService {
+  rpc FetchProfile(GetProfile) returns (Profile);
+  rpc FetchNotes(GetNotes) returns (stream Note);
+}
