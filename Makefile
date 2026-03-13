@@ -240,7 +240,7 @@ define PROTO_GO
 	# 5. Generate Lite Go Protobuf (for JS/TinyGo)
 	protoc -I=proto \
 		--plugin protoc-gen-go-lite="$(shell go tool -C go -n protoc-gen-go-lite)" \
-		--plugin protoc-gen-flap-go-connect="$(shell go env GOBIN)/protoc-gen-flap-go-connect" \
+		--plugin protoc-gen-flap-go-connect="$(shell go env GOPATH)/bin/protoc-gen-flap-go-connect" \
 		--go-lite_out=go --go-lite_opt=module=flap,features=marshal+unmarshal+size+equal+clone \
 		--flap-go-connect_out=go --flap-go-connect_opt=module=flap \
 		**/*.proto
@@ -264,7 +264,7 @@ define PROTO_DART
 	go install -C go/cmd/protoc-gen-flap-dart-connect
 	# 10. Generate Dart code
 	protoc -I=proto \
-		--plugin protoc-gen-flap-dart-connect="$(shell go env GOBIN)/protoc-gen-flap-dart-connect" \
+		--plugin protoc-gen-flap-dart-connect="$(shell go env GOPATH)/bin/protoc-gen-flap-dart-connect" \
 		--dart_out=lib/pb \
 		--flap-dart-connect_out=lib/pb \
 		**/*.proto
