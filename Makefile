@@ -29,7 +29,8 @@ endif
 .PHONY: prepare
 
 define UPDATE_WEB
-	cp -f platform_templates/web/* web/
+	mkdir -p web
+	cp -fr platform_templates/web/. web/
 endef
 
 update_web: ## Update Web
