@@ -1,5 +1,5 @@
 <p align="center">
-<img align="center" awidth="300" height="300" src="https://raw.githubusercontent.com/nosuta/flap/master/art/logo.png"><br>
+<img align="center" awidth="200" height="200" src="https://raw.githubusercontent.com/nosuta/flap/master/art/logo.png"><br>
 <b>Go x Flutter frontend template</b>
 </p>
 
