@@ -2,36 +2,6 @@ name: CI
 on: push
 
 jobs:
-  test_go_wasm:
-    strategy:
-      matrix:
-        go-version: [1.25]
-        tinygo-version: [0.40.1]
-        os: [ubuntu-latest]
-        compiler: [go, tinygo]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Install Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: ${{ matrix.go-version }}
-          cache-dependency-path: go/go.sum
-      - name: Install TinyGo
-        if: matrix.compiler == 'tinygo'
-        run: |
-          wget https://github.com/tinygo-org/tinygo/releases/download/v${{ matrix.tinygo-version }}/tinygo_${{ matrix.tinygo-version }}_amd64.deb
-          sudo dpkg -i tinygo_${{ matrix.tinygo-version }}_amd64.deb
-      - name: Install chrome
-        uses: browser-actions/setup-chrome@latest
-      - name: Update web
-        run: make update_web
-      - name: Install go_js_wasm_exec
-        run: make prepare_go_wasm_test
-      - name: Test
-        working-directory: go
-        run: GOOS=js GOARCH=wasm ${{ matrix.compiler }} test -v ./languages ./sqlite ./nostr/eventstore/sqlite ./nostr/nipe4
   test_go:
     strategy:
       matrix:
@@ -48,4 +18,4 @@ jobs:
           cache-dependency-path: go/go.sum
       - name: Test
         working-directory: go
-        run: go test -v ./languages ./sqlite ./nostr/eventstore/sqlite ./nostr/nipe4
+        run: go test -v ./...

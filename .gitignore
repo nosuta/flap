@@ -65,6 +65,8 @@ node_modules
 package.json
 package-lock.json
 go/build
+go.sum
+!go/go.sum
 *.so
 *.dylib
 *.a
