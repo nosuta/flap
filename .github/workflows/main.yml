@@ -17,11 +17,12 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
+          cache-dependency-path: go/go.sum
       - name: Install TinyGo
         if: matrix.compiler == 'tinygo'
         run: |
-          wget https://github.com/tinygo-org/tinygo/releases/download/${{ matrix.tinygo-version }}/tinygo_${{ matrix.tinygo-version }}_amd64.deb
-          sudo dpkg -i tinygo_${{ matrix.tinygo-version }}_amd64.deb
+          wget https://github.com/tinygo-org/tinygo/releases/download/v${{ matrix.tinygo-version }}/tinygo${{ matrix.tinygo-version }}_amd64.deb
+          sudo dpkg -i tinygo${{ matrix.tinygo-version }}_amd64.deb
       - name: Install chrome
         uses: browser-actions/setup-chrome@latest
       - name: Install go_js_wasm_exec
@@ -43,5 +44,6 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
+          cache-dependency-path: go/go.sum
       - name: Test
         run: go test -C go -v ./...
