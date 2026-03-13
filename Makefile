@@ -217,13 +217,21 @@ define PROTO_GO
 	# 2. Add build tag to standard Go files
 	for f in go/pb/*.pb.go; do \
 		if ! grep -q "go:build" $$f; then \
-			sed -i '' '1s/^/\/\/go:build !js\n\n/' $$f; \
+			if [ "$$(uname)" = "Darwin" ]; then \
+				sed -i '' '1s/^/\/\/go:build !js\n\n/' $$f; \
+			else \
+				sed -i '1s/^/\/\/go:build !js\n\n/' $$f; \
+			fi \
 		fi \
 	done
 	# 3. Add build tag to Connect-Go files
 	for f in go/pb/pbconnect/*.connect.go; do \
 		if ! grep -q "go:build" $$f; then \
-			sed -i '' '1s/^/\/\/go:build !js\n\n/' $$f; \
+			if [ "$$(uname)" = "Darwin" ]; then \
+				sed -i '' '1s/^/\/\/go:build !js\n\n/' $$f; \
+			else \
+				sed -i '1s/^/\/\/go:build !js\n\n/' $$f; \
+			fi \
 		fi \
 	done
 	# 4. Temporarily move standard files to avoid overwrite
@@ -238,7 +246,11 @@ define PROTO_GO
 		**/*.proto
 	# 6. Rename Lite files and add build tag
 	for f in go/pb/*.pb.go; do \
-		sed -i '' '1s/^/\/\/go:build js\n\n/' $$f; \
+		if [ "$$(uname)" = "Darwin" ]; then \
+			sed -i '' '1s/^/\/\/go:build js\n\n/' $$f; \
+		else \
+			sed -i '1s/^/\/\/go:build js\n\n/' $$f; \
+		fi; \
 		mv $$f $${f%.go}_lite.go; \
 	done
 	# 8. Restore standard files
