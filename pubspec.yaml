@@ -15,8 +15,7 @@ dependencies:
     path: packages/web_internal
   native_internal:
     path: packages/native_internal
-  hexpattern:
-    path: ../hexpattern
+  hexpattern: ^13.1.0
   statescope: ^3.0.0
   super_sliver_list:
     git:

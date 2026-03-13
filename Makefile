@@ -9,19 +9,19 @@ default: help
 
 prepare: ## Prepare environment
 	dart pub global activate protoc_plugin
-	go mod tidy
+	go mod -C go tidy
 	$(call PROTO)
-ifeq (,$(shell test -d "web"))
+ifeq ($(wildcard web/.),)
 		flutter create -e --platforms=web .
 		$(call UPDATE_WEB)
 endif
-ifeq (,$(shell test -d "android"))
+ifeq ($(wildcard android/.),)
 		$(call PREPARE_ANDROID)
 endif
-ifeq (,$(shell test -d "ios"))
+ifeq ($(wildcard ios/.),)
 		$(call PREPARE_IOS)
 endif
-ifeq (,$(shell test -d "macos"))
+ifeq ($(wildcard macos/.),)
 		$(call PREPARE_MACOS)
 endif
 	flutter clean

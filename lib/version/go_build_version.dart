@@ -1,3 +1,3 @@
 class GoBuildVersion {
-  static const String version = '1773389852';
+  static const String version = '1773425407';
 }

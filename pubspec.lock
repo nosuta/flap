@@ -299,9 +299,10 @@ packages:
   hexpattern:
     dependency: "direct main"
     description:
-      path: "../hexpattern"
-      relative: true
-    source: path
+      name: hexpattern
+      sha256: "8e116567889a2bf3c3909a44e25429051c16a7ad8e988c68ed30884e96b6f90d"
+      url: "https://pub.dev"
+    source: hosted
     version: "13.1.0"
   http:
     dependency: transitive
