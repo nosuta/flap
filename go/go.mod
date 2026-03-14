@@ -7,7 +7,7 @@ replace fiatjaf.com/nostr => github.com/1l0/nostrlib v0.0.0-20260309112724-8d93f
 require (
 	connectrpc.com/connect v1.19.1
 	fiatjaf.com/nostr v0.0.0-20260312140001-bb4093d834af
-	github.com/1l0/go-wasmsqlite v0.0.0-20251123143527-81cad988c1e2
+	github.com/1l0/go-wasmsqlite v0.1.0
 	github.com/1l0/nostr-sqlite v0.8.0
 	github.com/aperturerobotics/protobuf-go-lite v0.12.2
 	github.com/btcsuite/btcd/btcec/v2 v2.3.6
