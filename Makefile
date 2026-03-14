@@ -47,8 +47,8 @@ endef
 
 define PREPARE_MACOS
 	flutter create -e --platforms=macos .
-	perl -pi -e 's/(<\/dict>)/\t<key>com.apple.security.network.client<\/key>\n\t<true\/>\n$$1/' macos/Runner/DebugProfile.entitlements
-	perl -pi -e 's/(<\/dict>)/\t<key>com.apple.security.network.client<\/key>\n\t<true\/>\n$$1/' macos/Runner/Release.entitlements
+	perl -pi -e 's/(<\/dict>)/\t<key>com.apple.security.network.client<\/key>\n\t<true\/>\n\t<key>keychain-access-groups<\/key>\n\t<array\/>\n$$1/' macos/Runner/DebugProfile.entitlements
+	perl -pi -e 's/(<\/dict>)/\t<key>com.apple.security.network.client<\/key>\n\t<true\/>\n\t<key>keychain-access-groups<\/key>\n\t<array\/>\n$$1/' macos/Runner/Release.entitlements
 endef
 
 define UPDATE_GO_BUILD_VERSION
