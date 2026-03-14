@@ -1,7 +1,5 @@
 "use strict";
 
-"use strict";
-
 importScripts("wasm_exec.js");
 importScripts("sqlite3.js");
 
