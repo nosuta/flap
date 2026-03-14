@@ -14,6 +14,7 @@ var requiredTools = []tool{
 	{name: "git", check: []string{"--version"}, hint: "https://git-scm.com/"},
 	{name: "protoc", check: []string{"--version"}, hint: "https://grpc.io/docs/protoc-installation/"},
 	{name: "npm", check: []string{"--version"}, hint: "https://nodejs.org/"},
+	{name: "perl", check: []string{"--version"}, hint: "https://www.perl.org/get.html"},
 }
 
 type tool struct {
@@ -23,7 +24,7 @@ type tool struct {
 }
 
 func main() {
-	fmt.Println("🚀 flap - Go x Flutter project generator")
+	fmt.Println("flap - Go x Flutter frontend template")
 	fmt.Println()
 
 	// 1. dependency check
