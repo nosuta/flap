@@ -77,11 +77,6 @@ web: update_web proto wasm_tinygo ## Build for Web browser
 	flutter build web --wasm --release
 .PHONY: web
 
-web_publish: web ## Publish (remove this and /public before the flap release)
-	rm -rf public/*
-	cp -r build/web/* public
-.PHONY: web_publish
-
 web_run: update_web proto wasm ## Run for Web browser
 	flutter run -d web-server
 .PHONY: web_run
@@ -288,7 +283,6 @@ clean: ## Clean all build artifacts
 	rm -f go/cmd/go_js_wasm_exec/wasm_exec.js
 	rm -f packages/web_internal/lib/worker.wasm
 	rm -rf node_modules
-	rm -rf public/
 	rm -rf go/build/
 	rm -rf go/pb/
 	rm -rf lib/pb/
