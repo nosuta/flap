@@ -8,6 +8,7 @@ default: help
 .PHONY: default
 
 prepare: ## Prepare environment
+	$(call PREPARE_DUMMY)
 	dart pub global activate protoc_plugin
 	go mod -C go tidy
 	$(call PROTO_GO)
@@ -36,6 +37,10 @@ update_web: ## Update Web
 	$(call UPDATE_WEB)
 .PHONY: update_web
 
+define PREPARE_DUMMY
+	touch packages/web_internal/worker.wasm
+endef
+
 define PREPARE_ANDROID
 	flutter create -e --platforms=android .
 	perl -pi -e 's/(<manifest .*?>)/$$1\n    <uses-permission android:name="android.permission.INTERNET" \/>/' android/app/src/main/AndroidManifest.xml;
@@ -43,6 +48,8 @@ endef
 
 define PREPARE_IOS
 	flutter create -e --platforms=ios .
+	perl -pi -e 's/(<\/dict>)/\t<key>com.apple.security.network.client<\/key>\n\t<true\/>\n\t<key>keychain-access-groups<\/key>\n\t<array\/>\n$$1/' ios/Runner/DebugProfile.entitlements
+	perl -pi -e 's/(<\/dict>)/\t<key>com.apple.security.network.client<\/key>\n\t<true\/>\n\t<key>keychain-access-groups<\/key>\n\t<array\/>\n$$1/' ios/Runner/Release.entitlements
 endef
 
 define PREPARE_MACOS
@@ -204,7 +211,7 @@ define PROTO_GO
 	# 0. Clean proto gen files
 	rm -rf go/pb/*
 	mkdir -p go/pb
-	# 1. Generate standard Go Protobuf and Connect-Go (for non-JS)
+	# 1. Generate standard Go Protobuf (for non-TinyGo)
 	protoc -I=proto \
 		--plugin protoc-gen-go="$(shell go tool -C go -n protoc-gen-go)" \
 		--go_out=go --go_opt=module=flap **/*.proto
@@ -222,7 +229,7 @@ define PROTO_GO
 			fi \
 		fi \
 	done
-	# 3. Add build tag to Connect-Go files
+	# 3. Add build tag to Connect files
 	for f in go/pb/pbconnect/*.connect.go; do \
 		if ! grep -q "go:build" $$f; then \
 			if [ "$$(uname)" = "Darwin" ]; then \
@@ -235,7 +242,7 @@ define PROTO_GO
 	# 4. Temporarily move standard files to avoid overwrite
 	mkdir -p go/pb/tmp_std
 	mv go/pb/*.pb.go go/pb/tmp_std/
-	# 5. Generate Lite Go Protobuf (for JS/TinyGo)
+	# 5. Generate Lite Go Protobuf (for TinyGo)
 	protoc -I=proto \
 		--plugin protoc-gen-go-lite="$(shell go tool -C go -n protoc-gen-go-lite)" \
 		--plugin protoc-gen-flap-go-connect="$(shell go env GOPATH)/bin/protoc-gen-flap-go-connect" \
