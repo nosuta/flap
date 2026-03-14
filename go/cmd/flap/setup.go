@@ -11,7 +11,11 @@ func cloneTemplate(cfg config) error {
 	if _, err := os.Stat(cfg.dir); err == nil {
 		return fmt.Errorf("directory %q already exists", cfg.dir)
 	}
-	return task("Clone template", ".", "git", "clone", "--depth=1", templateRepo, cfg.dir)
+	if err := task("Clone template", ".", "git", "clone", "--depth=1", templateRepo, cfg.dir); err != nil {
+		return err
+	}
+	// rename origin → upstream so users can add their own origin later
+	return task("Set upstream remote", cfg.dir, "git", "remote", "rename", "origin", "upstream")
 }
 
 func applyConfig(cfg config) error {
