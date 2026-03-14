@@ -81,9 +81,9 @@ func main() {
 	fmt.Printf("✓ Project created at ./%s\n", cfg.dir)
 	fmt.Println()
 	fmt.Printf("  cd %s\n", cfg.dir)
-	fmt.Println("  make web_run       # run in browser")
-	fmt.Println("  make macos_run     # run on macOS")
-	fmt.Println("  make apk           # build Android APK")
+	fmt.Println("  make -s web_run       # run in browser")
+	fmt.Println("  make -s macos_run     # run on macOS")
+	fmt.Println("  make -s apk           # build Android APK")
 }
 
 func fatalf(format string, args ...any) {

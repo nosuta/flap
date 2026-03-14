@@ -66,7 +66,7 @@ define UPDATE_GO_BUILD_VERSION_WEB
 	perl -pi -e "s/const asset.*?$$/$$1const asset = \"assets\/packages\/web_internal\/worker.wasm\?v=$(shell date +%s)\"\;/" web/worker.js
 endef
 
-prepare_go_wasm_test: web/sqlite3.js web/sqlite3.js web/sqlite3-opfs-async-proxy.js web/sqlite3.wasm ## Prepare Go wasm test
+prepare_go_wasm_test: web/sqlite3.js web/sqlite3.js web/sqlite3-opfs-async-proxy.js web/sqlite3.wasm ## Prepare Go Wasm test environment
 	cp web/sqlite3.js go/cmd/go_js_wasm_exec/
 	cp web/sqlite3.wasm go/cmd/go_js_wasm_exec/
 	cp web/sqlite3-opfs-async-proxy.js go/cmd/go_js_wasm_exec/
@@ -154,11 +154,11 @@ ios_lib: go/dart_api/dart_api_dl.h ## Build iOS native library
 	cp go/build/ios-arm64/${LIB_NAME}.h exported.h
 .PHONY: ios_lib
 
-macos_run: proto macos_lib ffi  ## Run for macOS (test purpose)
+macos_run: proto macos_lib ffi  ## Run for macOS (for testing)
 	flutter run -d macos --dart-define-from-file=core.env
 .PHONY: macos
 
-macos_lib: go/dart_api/dart_api_dl.h ## Build macOS native library (test purpose)
+macos_lib: go/dart_api/dart_api_dl.h ## Build macOS native library (for testing)
 	CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 \
 	go build -C go -ldflags='-w -s' -buildmode=c-shared \
 	-o build/macos-arm64/${LIB_NAME}.dylib -trimpath .
@@ -197,7 +197,7 @@ proto: ## Generate protobuf code
 	$(call PROTO_DART)
 .PHONY: proto
 
-proto_go: ## Generate protobuf Go code
+proto_go: ## Generate protobuf Go code (for CI)
 	$(call PROTO_GO)
 .PHONY: proto_go
 
@@ -297,7 +297,7 @@ clean: ## Clean all build artifacts
 	flutter clean
 .PHONY: clean
 
-reset: clean ## Reset the template
+reset: clean ## Reset the project to template state
 	rm -rf web
 	rm -rf android
 	rm -rf ios
