@@ -38,25 +38,34 @@ func main() {
 	cfg := promptConfig()
 	fmt.Println()
 
+	// cleanup on any failure after directory is created
+	cleanup := func() {
+		if _, err := os.Stat(cfg.dir); err == nil {
+			fmt.Fprintf(os.Stderr, "Cleaning up ./%s ...\n", cfg.dir)
+			os.RemoveAll(cfg.dir)
+		}
+	}
+
 	// 3. clone template
 	if err := cloneTemplate(cfg); err != nil {
 		fatalf("Failed to clone template: %v", err)
 	}
 
-	// 4. apply config (app name, bundle id, package name)
+	// 4. apply config
 	if err := applyConfig(cfg); err != nil {
+		cleanup()
 		fatalf("Failed to apply config: %v", err)
 	}
 
 	// 5. make prepare
-	fmt.Println("Running setup (this may take a few minutes)...")
-	if err := runMake(cfg.dir, "prepare"); err != nil {
+	if err := runMake(cfg.dir, "Prepare environment", "prepare"); err != nil {
+		cleanup()
 		fatalf("Setup failed: %v", err)
 	}
 
 	// 6. make prepare_go_wasm_test
-	fmt.Println("Setting up Go wasm test environment...")
-	if err := runMake(cfg.dir, "prepare_go_wasm_test"); err != nil {
+	if err := runMake(cfg.dir, "Prepare Go wasm test", "prepare_go_wasm_test"); err != nil {
+		cleanup()
 		fatalf("Wasm test setup failed: %v", err)
 	}
 
@@ -67,4 +76,9 @@ func main() {
 	fmt.Println("  make web_run       # run in browser")
 	fmt.Println("  make macos_run     # run on macOS")
 	fmt.Println("  make apk           # build Android APK")
+}
+
+func fatalf(format string, args ...any) {
+	fmt.Fprintf(os.Stderr, "✗ "+format+"\n", args...)
+	os.Exit(1)
 }

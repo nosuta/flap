@@ -3,12 +3,18 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 )
 
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: gen_go_build_version <output_path>")
+		os.Exit(1)
+	}
+
+	if err := os.MkdirAll(filepath.Dir(os.Args[1]), 0755); err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 

@@ -12,28 +12,10 @@ type config struct {
 	dir      string // directory / project name
 	appName  string // display name e.g. "My App"
 	bundleID string // e.g. com.example.myapp
-	pkgName  string // Go module name e.g. myapp
 }
 
 var (
 	reBundleID = regexp.MustCompile(`^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*){2,}$`)
-	rePkgName  = regexp.MustCompile(`^[a-z][a-z0-9_]*$`)
-
-	// Go standard library package names that would cause ambiguous import errors
-	goStdLibNames = map[string]bool{
-		"archive": true, "bufio": true, "builtin": true, "bytes": true,
-		"compress": true, "container": true, "context": true, "crypto": true,
-		"database": true, "debug": true, "embed": true, "encoding": true,
-		"errors": true, "expvar": true, "flag": true, "fmt": true,
-		"go": true, "hash": true, "html": true, "http": true,
-		"image": true, "index": true, "io": true, "log": true,
-		"maps": true, "math": true, "mime": true, "net": true,
-		"os": true, "path": true, "plugin": true, "reflect": true,
-		"regexp": true, "runtime": true, "slices": true, "sort": true,
-		"strconv": true, "strings": true, "sync": true, "syscall": true,
-		"testing": true, "text": true, "time": true, "unicode": true,
-		"unsafe": true,
-	}
 )
 
 func promptConfig() config {
@@ -48,23 +30,11 @@ func promptConfig() config {
 		}
 		return true
 	})
-	pkgName := ask(r, "Go package name", toSlug(appName), func(s string) bool {
-		if !rePkgName.MatchString(s) {
-			fmt.Println("  Must be lowercase letters, digits, underscores only")
-			return false
-		}
-		if goStdLibNames[s] {
-			fmt.Printf("  %q conflicts with a Go standard library package name, choose another\n", s)
-			return false
-		}
-		return true
-	})
 
 	return config{
 		dir:      dir,
 		appName:  appName,
 		bundleID: bundleID,
-		pkgName:  pkgName,
 	}
 }
 
