@@ -25,8 +25,6 @@ endif
 ifeq ($(wildcard macos/.),)
 		$(call PREPARE_MACOS)
 endif
-	flutter clean
-	$(call NATIVE_BRIDGE)
 .PHONY: prepare
 
 define UPDATE_WEB
@@ -205,7 +203,7 @@ define PROTO_GO
 	go install -C go/cmd/protoc-gen-flap-go-connect
 	# 0. Clean proto gen files
 	rm -rf go/pb/*
-	rm -rf lib/pb/*
+	mkdir -p go/pb
 	# 1. Generate standard Go Protobuf and Connect-Go (for non-JS)
 	protoc -I=proto \
 		--plugin protoc-gen-go="$(shell go tool -C go -n protoc-gen-go)" \
@@ -261,6 +259,8 @@ define PROTO_GO
 endef
 
 define PROTO_DART
+	rm -rf lib/pb/*
+	mkdir -p lib/pb
 	go install -C go/cmd/protoc-gen-flap-dart-connect
 	# 10. Generate Dart code
 	protoc -I=proto \
