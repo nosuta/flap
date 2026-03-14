@@ -3,7 +3,7 @@
 <b>Go x Flutter frontend template</b>
 </p>
 
-# Flap (WIP)
+# Flap
 
 Build cross-platform Flutter apps with embedded Go.
 
@@ -49,6 +49,7 @@ git merge upstream/main
 - perl
 - npm (for Web)
 - TinyGo (for Web)
+- Chrome (for Web)
 
 ### Setup
 
