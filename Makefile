@@ -59,7 +59,7 @@ define PREPARE_MACOS
 endef
 
 define UPDATE_GO_BUILD_VERSION
-	perl -pi -e "s/static const.*?$$/$$1static const String version = '$(shell date +%s)'\;/" lib/version/go_build_version.dart
+	go run go/cmd/gen_go_build_version/main.go lib/version/go_build_version.dart
 endef
 
 define UPDATE_GO_BUILD_VERSION_WEB
@@ -299,6 +299,7 @@ clean: ## Clean all build artifacts
 	rm -f packages/native_internal/android/src/main/jniLibs/arm64-v8a/${LIB_NAME}.so
 	rm -f exported.h
 	rm -f lib/bridge/*.g.dart
+	rm -f lib/version/go_build_version.dart
 	flutter clean
 .PHONY: clean
 

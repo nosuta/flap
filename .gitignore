@@ -61,6 +61,7 @@ go/cmd/go_js_wasm_exec/sqlite3-opfs-async-proxy.js
 go/cmd/go_js_wasm_exec/sqlite3.js
 go/cmd/go_js_wasm_exec/sqlite3.wasm
 packages/web_internal/lib/worker.wasm
+lib/version/go_build_version.dart
 node_modules
 package.json
 package-lock.json
@@ -79,4 +80,3 @@ TODO.md
 /android
 /ios
 /web
-
