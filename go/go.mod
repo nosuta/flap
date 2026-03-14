@@ -5,11 +5,9 @@ go 1.25.0
 replace fiatjaf.com/nostr => github.com/1l0/nostrlib v0.0.0-20260309112724-8d93f8c49d07
 
 require (
-	connectrpc.com/connect v1.19.1
 	fiatjaf.com/nostr v0.0.0-20260312140001-bb4093d834af
 	github.com/1l0/go-wasmsqlite v0.0.0-20251123143527-81cad988c1e2
 	github.com/1l0/nostr-sqlite v0.7.0
-	github.com/aperturerobotics/protobuf-go-lite v0.12.2
 	github.com/btcsuite/btcd/btcec/v2 v2.3.6
 	golang.org/x/exp v0.0.0-20260312153236-7ab1446f8b90
 	google.golang.org/protobuf v1.36.11
@@ -18,9 +16,11 @@ require (
 )
 
 require (
+	connectrpc.com/connect v1.19.1 // indirect
 	fiatjaf.com/lib v0.3.6 // indirect
 	github.com/FastFilter/xorfilter v0.2.1 // indirect
 	github.com/ImVexed/fasturl v0.0.0-20230304231329-4e41488060f3 // indirect
+	github.com/aperturerobotics/protobuf-go-lite v0.12.2 // indirect
 	github.com/btcsuite/btcd v0.24.2 // indirect
 	github.com/btcsuite/btcd/btcutil v1.1.6 // indirect
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0 // indirect

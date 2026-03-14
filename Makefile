@@ -38,7 +38,7 @@ update_web: ## Update Web
 .PHONY: update_web
 
 define PREPARE_DUMMY
-	touch packages/web_internal/worker.wasm
+	touch packages/web_internal/lib/worker.wasm
 endef
 
 define PREPARE_ANDROID
@@ -285,10 +285,13 @@ clean: ## Clean all build artifacts
 	rm -f go/cmd/go_js_wasm_exec/sqlite3.js
 	rm -f go/cmd/go_js_wasm_exec/sqlite3-opfs-async-proxy.js
 	rm -f go/cmd/go_js_wasm_exec/sqlite3.wasm
+	rm -f go/cmd/go_js_wasm_exec/wasm_exec.js
+	rm -f packages/web_internal/lib/worker.wasm
 	rm -rf node_modules
-	rm -rf public/*
-	rm -rf go/pb/*
-	rm -rf lib/pb/*
+	rm -rf public/
+	rm -rf go/build/
+	rm -rf go/pb/
+	rm -rf lib/pb/
 	rm -f packages/native_internal/macos/${LIB_NAME}.dylib
 	rm -f macos/${LIB_NAME}.dylib
 	rm -f packages/native_internal/ios/${LIB_NAME}.a
@@ -298,6 +301,13 @@ clean: ## Clean all build artifacts
 	rm -f lib/bridge/*.g.dart
 	flutter clean
 .PHONY: clean
+
+reset: clean ## Reset the template
+	rm -rf web
+	rm -rf android
+	rm -rf ios
+	rm -rf macos
+.PHONY: reset
 
 action: ## Test GitHub Action locally
 	act -s GITHUB_TOKEN="$(shell gh auth token)" --container-architecture linux/amd64
