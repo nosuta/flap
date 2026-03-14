@@ -49,3 +49,38 @@ func replaceInFile(path, old, new string) error {
 func runMake(dir, label, target string) error {
 	return task(label, dir, "make", target)
 }
+
+func setupCustomMk(dir string) error {
+	return taskFn("Configure custom.mk", func() error {
+		ndkPath := findNDK()
+		content := "NDK_PATH=" + ndkPath + "\n"
+		return os.WriteFile(filepath.Join(dir, "custom.mk"), []byte(content), 0644)
+	})
+}
+
+// findNDK looks for the Android NDK in common SDK locations.
+// Returns the path to the latest NDK version found, or empty string if not found.
+func findNDK() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
+	candidates := []string{
+		filepath.Join(home, "Library", "Android", "sdk", "ndk"),          // macOS
+		filepath.Join(home, "Android", "Sdk", "ndk"),                     // Linux
+		filepath.Join(home, "AppData", "Local", "Android", "Sdk", "ndk"), // Windows
+	}
+	for _, base := range candidates {
+		entries, err := os.ReadDir(base)
+		if err != nil || len(entries) == 0 {
+			continue
+		}
+		// pick the last entry (highest version, dirs are sorted lexically)
+		for i := len(entries) - 1; i >= 0; i-- {
+			if entries[i].IsDir() {
+				return filepath.Join(base, entries[i].Name())
+			}
+		}
+	}
+	return ""
+}

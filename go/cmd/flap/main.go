@@ -15,6 +15,7 @@ var requiredTools = []tool{
 	{name: "protoc", check: []string{"--version"}, hint: "https://grpc.io/docs/protoc-installation/"},
 	{name: "npm", check: []string{"--version"}, hint: "https://nodejs.org/"},
 	{name: "perl", check: []string{"--version"}, hint: "https://www.perl.org/get.html"},
+	{name: "tinygo", check: []string{"version"}, hint: "https://tinygo.org/getting-started/install/"},
 }
 
 type tool struct {
@@ -58,13 +59,19 @@ func main() {
 		fatalf("Failed to apply config: %v", err)
 	}
 
-	// 5. make prepare
+	// 5. custom.mk
+	if err := setupCustomMk(cfg.dir); err != nil {
+		cleanup()
+		fatalf("Failed to create custom.mk: %v", err)
+	}
+
+	// 6. make prepare
 	if err := runMake(cfg.dir, "Prepare environment", "prepare"); err != nil {
 		cleanup()
 		fatalf("Setup failed: %v", err)
 	}
 
-	// 6. make prepare_go_wasm_test
+	// 7. make prepare_go_wasm_test
 	if err := runMake(cfg.dir, "Prepare Go wasm test", "prepare_go_wasm_test"); err != nil {
 		cleanup()
 		fatalf("Wasm test setup failed: %v", err)
