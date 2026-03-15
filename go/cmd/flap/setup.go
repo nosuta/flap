@@ -20,13 +20,7 @@ func cloneTemplate(cfg config) error {
 
 func applyConfig(cfg config) error {
 	return taskFn("Apply project configuration", func() error {
-		// pubspec.yaml: name (package name) + description (display name)
-		if err := replaceInFile(
-			filepath.Join(cfg.dir, "pubspec.yaml"),
-			"name: flap", "name: "+cfg.pkgName,
-		); err != nil {
-			return err
-		}
+		// pubspec.yaml: description (display name only; name is kept as "flap" to avoid breaking internal imports)
 		if err := replaceInFile(
 			filepath.Join(cfg.dir, "pubspec.yaml"),
 			`description: "flap"`, `description: "`+cfg.appName+`"`,
@@ -56,14 +50,10 @@ func applyConfig(cfg config) error {
 			`PRODUCT_BUNDLE_IDENTIFIER = com.example.flap;`, `PRODUCT_BUNDLE_IDENTIFIER = `+cfg.bundleID+`;`,
 		)
 
-		// iOS: app display name and bundle name in Info.plist
+		// iOS: app display name in Info.plist
 		_ = replaceInFile(
 			filepath.Join(cfg.dir, "ios", "Runner", "Info.plist"),
 			`<string>Flap</string>`, `<string>`+cfg.appName+`</string>`,
-		)
-		_ = replaceInFile(
-			filepath.Join(cfg.dir, "ios", "Runner", "Info.plist"),
-			`<string>flap</string>`, `<string>`+cfg.pkgName+`</string>`,
 		)
 
 		// macOS: bundle identifier and product name in AppInfo.xcconfig
