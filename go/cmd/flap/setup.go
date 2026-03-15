@@ -20,7 +20,13 @@ func cloneTemplate(cfg config) error {
 
 func applyConfig(cfg config) error {
 	return taskFn("Apply project configuration", func() error {
-		// pubspec.yaml: name + description
+		// pubspec.yaml: name (package name) + description (display name)
+		if err := replaceInFile(
+			filepath.Join(cfg.dir, "pubspec.yaml"),
+			"name: flap", "name: "+cfg.pkgName,
+		); err != nil {
+			return err
+		}
 		if err := replaceInFile(
 			filepath.Join(cfg.dir, "pubspec.yaml"),
 			`description: "flap"`, `description: "`+cfg.appName+`"`,
@@ -28,11 +34,48 @@ func applyConfig(cfg config) error {
 			return err
 		}
 
-		// Android bundle ID (not fatal — dir created later by make prepare)
+		// Android: namespace + applicationId in build.gradle.kts
+		_ = replaceInFile(
+			filepath.Join(cfg.dir, "android", "app", "build.gradle.kts"),
+			`namespace = "com.example.flap"`, `namespace = "`+cfg.bundleID+`"`,
+		)
 		_ = replaceInFile(
 			filepath.Join(cfg.dir, "android", "app", "build.gradle.kts"),
 			`applicationId = "com.example.flap"`, `applicationId = "`+cfg.bundleID+`"`,
 		)
+
+		// Android: app label in AndroidManifest.xml
+		_ = replaceInFile(
+			filepath.Join(cfg.dir, "android", "app", "src", "main", "AndroidManifest.xml"),
+			`android:label="flap"`, `android:label="`+cfg.appName+`"`,
+		)
+
+		// iOS: bundle identifier in project.pbxproj
+		_ = replaceInFile(
+			filepath.Join(cfg.dir, "ios", "Runner.xcodeproj", "project.pbxproj"),
+			`PRODUCT_BUNDLE_IDENTIFIER = com.example.flap;`, `PRODUCT_BUNDLE_IDENTIFIER = `+cfg.bundleID+`;`,
+		)
+
+		// iOS: app display name and bundle name in Info.plist
+		_ = replaceInFile(
+			filepath.Join(cfg.dir, "ios", "Runner", "Info.plist"),
+			`<string>Flap</string>`, `<string>`+cfg.appName+`</string>`,
+		)
+		_ = replaceInFile(
+			filepath.Join(cfg.dir, "ios", "Runner", "Info.plist"),
+			`<string>flap</string>`, `<string>`+cfg.pkgName+`</string>`,
+		)
+
+		// macOS: bundle identifier and product name in AppInfo.xcconfig
+		_ = replaceInFile(
+			filepath.Join(cfg.dir, "macos", "Runner", "Configs", "AppInfo.xcconfig"),
+			`PRODUCT_NAME = flap`, `PRODUCT_NAME = `+cfg.appName,
+		)
+		_ = replaceInFile(
+			filepath.Join(cfg.dir, "macos", "Runner", "Configs", "AppInfo.xcconfig"),
+			`PRODUCT_BUNDLE_IDENTIFIER = com.example.flap`, `PRODUCT_BUNDLE_IDENTIFIER = `+cfg.bundleID,
+		)
+
 		return nil
 	})
 }
