@@ -14,19 +14,6 @@ import (
 	"flap/rpc"
 )
 
-// main as a web worker
-func main() {
-	defer func() {
-		rpc.Close()
-		if r := recover(); r != nil {
-			slog.Error("main recovered from panic", "message", r)
-		}
-	}()
-
-	webWorker()
-	select {}
-}
-
 func webWorker() {
 	defer func() {
 		if r := recover(); r != nil {

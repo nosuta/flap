@@ -160,8 +160,8 @@ macos_run: proto macos_lib ffi  ## Run for macOS (for testing)
 
 macos_lib: go/dart_api/dart_api_dl.h ## Build macOS native library (for testing)
 	CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 \
-	go build -C go -ldflags='-w -s' -buildmode=c-shared \
-	-o build/macos-arm64/${LIB_NAME}.dylib -trimpath .
+	go build -C go -ldflags='-w -s' -buildmode=c-shared -trimpath -tags debug \
+	-o build/macos-arm64/${LIB_NAME}.dylib .
 	cp go/build/macos-arm64/${LIB_NAME}.dylib packages/native_internal/macos/
 	cp go/build/macos-arm64/${LIB_NAME}.dylib macos/
 	cp go/build/macos-arm64/${LIB_NAME}.h exported.h

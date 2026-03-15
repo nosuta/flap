@@ -32,7 +32,8 @@ func main() {}
 
 //export InitializeDartAPI
 func InitializeDartAPI(api unsafe.Pointer) C.int64_t {
-	slog.SetLogLoggerLevel(slog.LevelDebug)
+	slog.SetLogLoggerLevel(slogLevel)
+
 	rpc.RPC().SetPusher(pusher)
 	return C.int64_t(dart_api.InitializeDartAPI(api))
 }
