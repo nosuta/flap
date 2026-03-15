@@ -10,7 +10,7 @@ message GetNotes {
   string topic = 3;
   oneof ranges {
     TimeRange range = 1;
-    bool noRange = 2;
+    bool no_range = 2;
   }
 }
 
@@ -47,11 +47,11 @@ message Note {
   repeated string relays = 6;
   string client = 7;
   Profile profile = 9;
-  Note replyTo = 13;
-  Note replyRoot = 14;
-  repeated Profile repostedBy = 12;
+  Note reply_to = 13;
+  Note reply_root = 14;
+  repeated Profile reposted_by = 12;
   bool translated = 16;
-  string translatedContent = 17;
+  string translated_content = 17;
 }
 
 message Notes { repeated Note notes = 1; }

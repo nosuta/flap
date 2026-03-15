@@ -12,9 +12,9 @@ enum AccountType {
 
 message Account {
   AccountType type = 1;
-  string publicKey = 2;
-  string privateKey = 3;
-  string sessionKey = 4;
+  string public_key = 2;
+  string private_key = 3;
+  string session_key = 4;
 }
 
 message Accounts { repeated Account accounts = 1; }
