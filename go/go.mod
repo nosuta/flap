@@ -10,7 +10,7 @@ require (
 	github.com/aperturerobotics/protobuf-go-lite v0.12.2
 	github.com/btcsuite/btcd/btcec/v2 v2.3.6
 	github.com/nosuta/go-wasmsqlite v0.2.0
-	github.com/nosuta/nostr-sqlite v0.9.0
+	github.com/nosuta/nostr-sqlite v0.9.1
 	golang.org/x/exp v0.0.0-20260312153236-7ab1446f8b90
 	google.golang.org/protobuf v1.36.11
 	marwan.io/wasm-fetch v0.1.0

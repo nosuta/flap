@@ -126,8 +126,8 @@ github.com/nosuta/go-wasmsqlite v0.2.0 h1:cWzOIs35nqw8yMjZJ/N2k01A+SJJYSYoy2RFJi
 github.com/nosuta/go-wasmsqlite v0.2.0/go.mod h1:7FcPQH9hX7ZopLN86cGsqqic/LoYwDHypUd3U9oVCOY=
 github.com/nosuta/nostr v0.1.3 h1:BegAWVH3tjMhGYQeTNk6oV/d3HzRIjtRkfI1IVTzwL0=
 github.com/nosuta/nostr v0.1.3/go.mod h1:kDP5jRpUmrt4Z7RIjb7xHx7ubKempZflF/ISdin5DeY=
-github.com/nosuta/nostr-sqlite v0.9.0 h1:2If/xMTAjL+LWFEOTLOHK6gLKzUKK+9mQHj6cX/4g3U=
-github.com/nosuta/nostr-sqlite v0.9.0/go.mod h1:Empsy8xEESa9JzykAbP6qRFu4QO2b7QrPSNC1MhPFeE=
+github.com/nosuta/nostr-sqlite v0.9.1 h1:qSdUgsOjyoTO/SAmIExCVSmdf1nFOOZeBgVh3ffxuA8=
+github.com/nosuta/nostr-sqlite v0.9.1/go.mod h1:mS9mUMOqFOBrSmf0FVO+5c7dxOQCVHbvOTL37yBpmJw=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/ginkgo v1.7.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
