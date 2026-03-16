@@ -1,13 +1,11 @@
 connectrpc.com/connect v1.19.1 h1:R5M57z05+90EfEvCY1b7hBxDVOUl45PrtXtAV2fOC14=
 connectrpc.com/connect v1.19.1/go.mod h1:tN20fjdGlewnSFeZxLKb0xwIZ6ozc3OQs2hTXy4du9w=
-fiatjaf.com/lib v0.3.6 h1:GRZNSxHI2EWdjSKVuzaT+c0aifLDtS16SzkeJaHyJfY=
-fiatjaf.com/lib v0.3.6/go.mod h1:UlHaZvPHj25PtKLh9GjZkUHRmQ2xZ8Jkoa4VRaLeeQ8=
 github.com/1l0/go-wasmsqlite v0.1.0 h1:v6QBfzPZ50NBq3aHmbvaLJAMsuBKqKaWj+wg/Z5utfs=
 github.com/1l0/go-wasmsqlite v0.1.0/go.mod h1:kb+P0/ZuAe7KA+icaQvL4ixMYiwNBNLyRYs3xSI1kE4=
 github.com/1l0/nostr-sqlite v0.8.0 h1:HmbU4ch6221ImzMRrZANbSEjacMmxtr5+lVRbpA0x7s=
 github.com/1l0/nostr-sqlite v0.8.0/go.mod h1:G234JRLZjIS4U4L1EdlkhjN4x/87i6dPbVRjlP7ugSY=
-github.com/1l0/nostrlib v0.1.0 h1:udAr8nNJdCPIbOnr2ClWYv8K52cTNokPFirHkQkVf8E=
-github.com/1l0/nostrlib v0.1.0/go.mod h1:kDP5jRpUmrt4Z7RIjb7xHx7ubKempZflF/ISdin5DeY=
+github.com/1l0/nostrlib v0.1.2 h1:wDqpBSSUzJ6P0DJFcthYwx3okFGUfiTp3QwMOT+fAH0=
+github.com/1l0/nostrlib v0.1.2/go.mod h1:kDP5jRpUmrt4Z7RIjb7xHx7ubKempZflF/ISdin5DeY=
 github.com/FastFilter/xorfilter v0.2.1 h1:lbdeLG9BdpquK64ZsleBS8B4xO/QW1IM0gMzF7KaBKc=
 github.com/FastFilter/xorfilter v0.2.1/go.mod h1:aumvdkhscz6YBZF9ZA/6O4fIoNod4YR50kIVGGZ7l9I=
 github.com/ImVexed/fasturl v0.0.0-20230304231329-4e41488060f3 h1:ClzzXMDDuUbWfNNZqGeYq4PnYOlwlOVIvSyNaIy0ykg=
