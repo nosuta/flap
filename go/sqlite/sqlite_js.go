@@ -8,7 +8,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	_ "github.com/1l0/go-wasmsqlite"
+	_ "github.com/nosuta/go-wasmsqlite"
 )
 
 func Open(path string) (*sql.DB, error) {
