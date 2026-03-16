@@ -2,29 +2,29 @@ package sqlite
 
 import (
 	"context"
-	lite "flap/sqlite"
+	"flap/sqlite"
 	"iter"
 	"log/slog"
 	"time"
 
 	"fiatjaf.com/nostr"
 	"fiatjaf.com/nostr/eventstore"
-	nlite "github.com/1l0/nostr-sqlite"
+	nqlite "github.com/nosuta/nostr-sqlite"
 )
 
 var _ eventstore.Store = (*SQLite)(nil)
 
 type SQLite struct {
-	Store   *nlite.Store
+	Store   *nqlite.Store
 	timeout time.Duration
 }
 
 func NewSQLite(path string) (*SQLite, error) {
-	db, err := lite.Open(path)
+	db, err := sqlite.Open(path)
 	if err != nil {
 		return nil, err
 	}
-	store, err := nlite.New(db)
+	store, err := nqlite.New(db)
 	if err != nil {
 		return nil, err
 	}

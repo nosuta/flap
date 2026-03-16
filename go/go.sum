@@ -1,7 +1,5 @@
 connectrpc.com/connect v1.19.1 h1:R5M57z05+90EfEvCY1b7hBxDVOUl45PrtXtAV2fOC14=
 connectrpc.com/connect v1.19.1/go.mod h1:tN20fjdGlewnSFeZxLKb0xwIZ6ozc3OQs2hTXy4du9w=
-github.com/1l0/nostr-sqlite v0.8.0 h1:HmbU4ch6221ImzMRrZANbSEjacMmxtr5+lVRbpA0x7s=
-github.com/1l0/nostr-sqlite v0.8.0/go.mod h1:G234JRLZjIS4U4L1EdlkhjN4x/87i6dPbVRjlP7ugSY=
 github.com/1l0/nostrlib v0.1.3 h1:C1Yl2tps0nXMoyswsrQLycCKtURp0U3kd51JmQsKgjY=
 github.com/1l0/nostrlib v0.1.3/go.mod h1:kDP5jRpUmrt4Z7RIjb7xHx7ubKempZflF/ISdin5DeY=
 github.com/FastFilter/xorfilter v0.2.1 h1:lbdeLG9BdpquK64ZsleBS8B4xO/QW1IM0gMzF7KaBKc=
@@ -128,6 +126,8 @@ github.com/ncruces/go-strftime v0.1.9 h1:bY0MQC28UADQmHmaF5dgpLmImcShSi2kHU9XLdh
 github.com/ncruces/go-strftime v0.1.9/go.mod h1:Fwc5htZGVVkseilnfgOVb9mKy6w1naJmn9CehxcKcls=
 github.com/nosuta/go-wasmsqlite v0.2.0 h1:cWzOIs35nqw8yMjZJ/N2k01A+SJJYSYoy2RFJiKZUnQ=
 github.com/nosuta/go-wasmsqlite v0.2.0/go.mod h1:7FcPQH9hX7ZopLN86cGsqqic/LoYwDHypUd3U9oVCOY=
+github.com/nosuta/nostr-sqlite v0.9.0 h1:2If/xMTAjL+LWFEOTLOHK6gLKzUKK+9mQHj6cX/4g3U=
+github.com/nosuta/nostr-sqlite v0.9.0/go.mod h1:Empsy8xEESa9JzykAbP6qRFu4QO2b7QrPSNC1MhPFeE=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/ginkgo v1.7.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
