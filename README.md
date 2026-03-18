@@ -36,7 +36,7 @@ The template is set as the `upstream` remote. To pull in updates:
 
 ```sh
 git fetch upstream
-git merge upstream/main
+git merge upstream/master
 ```
 
 ## Manual setup (without CLI)
