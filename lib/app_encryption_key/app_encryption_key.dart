@@ -1,3 +1,5 @@
+// Code as template. DO NOT EDIT.
+
 import 'dart:async';
 import 'dart:math';
 import 'dart:convert';
