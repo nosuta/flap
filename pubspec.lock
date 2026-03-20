@@ -97,14 +97,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.19.1"
-  connectrpc:
-    dependency: "direct main"
-    description:
-      name: connectrpc
-      sha256: a1dbf301d0dfa189bb879a9f15bbe72f31dbac581f385035a10fcc2d31a93a18
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.0"
   convert:
     dependency: transitive
     description:
@@ -312,14 +304,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.6.0"
-  http2:
-    dependency: transitive
-    description:
-      name: http2
-      sha256: "382d3aefc5bd6dc68c6b892d7664f29b5beb3251611ae946a98d35158a82bbfa"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.3.1"
   http_parser:
     dependency: transitive
     description:

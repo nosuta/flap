@@ -19,9 +19,9 @@ import 'package:flap/pb/message.pb.dart' as pbmessage;
 import 'package:flap/widgets/slivers/progress_indicator_header.dart';
 import 'package:flap/widgets/note.dart';
 import 'package:flap/widgets/scrollable_title.dart';
-import 'package:flap/pb/echo.connect.dart';
+import 'package:flap/pb/echo.flap.dart';
 import 'package:flap/pb/echo.pb.dart' as pbecho;
-import 'package:flap/pb/nostr.connect.dart';
+import 'package:flap/pb/nostr.flap.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key, required this.title});

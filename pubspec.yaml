@@ -43,10 +43,6 @@ dependencies:
   flutter_animate: ^4.5.2
   ffi: ^2.1.4
   path_provider: ^2.1.5
-  connectrpc: ^1.0.0
-
-dependency_overrides:
-  protobuf: ^6.0.0 # force connectrpc to use newer version
 
 dev_dependencies:
   flutter_test:
