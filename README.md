@@ -16,11 +16,7 @@ Build cross-platform Flutter apps with embedded Go.
 
 ## Getting Started
 
-Install the CLI:
-
-```sh
-go install github.com/nosuta/flap/go/cmd/flap@latest
-```
+Install the CLI from [GitHub Releases](https://github.com/nosuta/flap/releases/latest).
 
 Create a new project:
 
