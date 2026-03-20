@@ -202,7 +202,7 @@ proto_go: ## Generate protobuf Go code (for CI)
 .PHONY: proto_go
 
 define PROTO_GO
-	go install -C go/cmd/protoc-gen-flap-go-connect
+	go install -C go/cmd/protoc-gen-go-flap
 	# 0. Clean proto gen files
 	rm -rf go/pb/*
 	mkdir -p go/pb
@@ -226,9 +226,9 @@ define PROTO_GO
 	# 4. Generate Lite Go Protobuf (for TinyGo) and Flap Protobuf
 	protoc -I=proto \
 		--plugin protoc-gen-go-lite="$(shell go tool -C go -n protoc-gen-go-lite)" \
-		--plugin protoc-gen-flap-go-connect="$(shell go env GOPATH)/bin/protoc-gen-flap-go-connect" \
+		--plugin protoc-gen-go-flap="$(shell go env GOPATH)/bin/protoc-gen-go-flap" \
 		--go-lite_out=go --go-lite_opt=module=flap,features=marshal+unmarshal+size+equal+clone \
-		--flap-go-connect_out=go --flap-go-connect_opt=module=flap \
+		--go-flap_out=go --go-flap_opt=module=flap \
 		**/*.proto
 	# 5. Rename Lite files and add build tag
 	for f in go/pb/*.pb.go; do \
@@ -249,12 +249,12 @@ endef
 define PROTO_DART
 	rm -rf lib/pb/*
 	mkdir -p lib/pb
-	go install -C go/cmd/protoc-gen-flap-dart-connect
+	go install -C go/cmd/protoc-gen-dart-flap
 	# 10. Generate Dart code
 	protoc -I=proto \
-		--plugin protoc-gen-flap-dart-connect="$(shell go env GOPATH)/bin/protoc-gen-flap-dart-connect" \
+		--plugin protoc-gen-dart-flap="$(shell go env GOPATH)/bin/protoc-gen-dart-flap" \
 		--dart_out=lib/pb \
-		--flap-dart-connect_out=lib/pb \
+		--dart-flap_out=lib/pb \
 		**/*.proto
 endef
 
