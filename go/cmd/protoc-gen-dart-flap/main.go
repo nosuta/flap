@@ -37,7 +37,7 @@ func generateFile(gen *protogen.Plugin, file *protogen.File) {
 	g.P("// source: ", file.Desc.Path())
 	g.P()
 	g.P("import 'package:flap/bridge/bridge.dart';")
-	g.P("import 'package:flap/bridge/connect_transport.dart';")
+	g.P("import 'package:flap/bridge/transport.dart';")
 
 	dartProtoImport := fmt.Sprintf("import '%s.pb.dart';", basename)
 	g.P(dartProtoImport)
@@ -66,9 +66,9 @@ func generateService(g *protogen.GeneratedFile, service *protogen.Service) {
 	clientName := serviceName + "Client"
 
 	g.P("class ", clientName, " {")
-	g.P("  final BridgeTransport _transport;")
+	g.P("  final Transport _transport;")
 	g.P()
-	g.P("  ", clientName, "(Bridge bridge) : _transport = BridgeTransport(bridge);")
+	g.P("  ", clientName, "(Bridge bridge) : _transport = Transport(bridge);")
 	g.P()
 
 	for _, method := range service.Methods {

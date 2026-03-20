@@ -2,9 +2,9 @@ import 'dart:async';
 import 'package:flap/bridge/bridge.dart';
 import 'package:flap/pb/message.pb.dart' as pb;
 
-class BridgeTransport {
+class Transport {
   final Bridge bridge;
-  BridgeTransport(this.bridge);
+  Transport(this.bridge);
 
   Future<O> unary<I extends Object, O extends Object>(
     String path,
