@@ -5,7 +5,6 @@ go 1.25.0
 replace fiatjaf.com/nostr => github.com/nosuta/nostr v0.1.3
 
 require (
-	connectrpc.com/connect v1.19.1
 	fiatjaf.com/nostr v0.0.0-20260312140001-bb4093d834af
 	github.com/aperturerobotics/protobuf-go-lite v0.12.2
 	github.com/btcsuite/btcd/btcec/v2 v2.3.6
@@ -63,7 +62,6 @@ require (
 )
 
 tool (
-	connectrpc.com/connect/cmd/protoc-gen-connect-go
 	github.com/aperturerobotics/protobuf-go-lite/cmd/protoc-gen-go-lite
 	google.golang.org/protobuf/cmd/protoc-gen-go
 )

@@ -210,10 +210,6 @@ define PROTO_GO
 	protoc -I=proto \
 		--plugin protoc-gen-go="$(shell go tool -C go -n protoc-gen-go)" \
 		--go_out=go --go_opt=module=flap **/*.proto
-	protoc -I=proto \
-		--plugin protoc-gen-connect-go="$(shell go tool -C go -n protoc-gen-connect-go)" \
-		--connect-go_out=go --connect-go_opt=module=flap,paths=import \
-		proto/echo.proto
 	# 2. Add build tag to standard Go files
 	for f in go/pb/*.pb.go; do \
 		if ! grep -q "go:build" $$f; then \
@@ -224,27 +220,17 @@ define PROTO_GO
 			fi \
 		fi \
 	done
-	# 3. Add build tag to Connect files
-	for f in go/pb/pbconnect/*.connect.go; do \
-		if ! grep -q "go:build" $$f; then \
-			if [ "$$(uname)" = "Darwin" ]; then \
-				sed -i '' '1s/^/\/\/go:build !js\n\n/' $$f; \
-			else \
-				sed -i '1s/^/\/\/go:build !js\n\n/' $$f; \
-			fi \
-		fi \
-	done
-	# 4. Temporarily move standard files to avoid overwrite
+	# 3. Temporarily move standard files to avoid overwrite
 	mkdir -p go/pb/tmp_std
 	mv go/pb/*.pb.go go/pb/tmp_std/
-	# 5. Generate Lite Go Protobuf (for TinyGo)
+	# 4. Generate Lite Go Protobuf (for TinyGo) and Flap Protobuf
 	protoc -I=proto \
 		--plugin protoc-gen-go-lite="$(shell go tool -C go -n protoc-gen-go-lite)" \
 		--plugin protoc-gen-flap-go-connect="$(shell go env GOPATH)/bin/protoc-gen-flap-go-connect" \
 		--go-lite_out=go --go-lite_opt=module=flap,features=marshal+unmarshal+size+equal+clone \
 		--flap-go-connect_out=go --flap-go-connect_opt=module=flap \
 		**/*.proto
-	# 6. Rename Lite files and add build tag
+	# 5. Rename Lite files and add build tag
 	for f in go/pb/*.pb.go; do \
 		if [ "$$(uname)" = "Darwin" ]; then \
 			sed -i '' '1s/^/\/\/go:build js\n\n/' $$f; \
@@ -253,10 +239,10 @@ define PROTO_GO
 		fi; \
 		mv $$f $${f%.go}_lite.go; \
 	done
-	# 8. Restore standard files
+	# 6. Restore standard files
 	mv go/pb/tmp_std/*.pb.go go/pb/
 	rmdir go/pb/tmp_std
-	# 9. Generate MarshalVT wrappers for standard Go
+	# 7. Generate MarshalVT wrappers for standard Go
 	go run go/cmd/gen_marshal_std/main.go go/pb
 endef
 
