@@ -8,7 +8,7 @@ import (
 	"log/slog"
 )
 
-func HandleConnect(ctx context.Context, req *pb.ConnectRequest, ch chan<- *pb.Response) {
-	slog.Info("HandleConnect (Native/Unified)", "path", req.Path)
-	HandleConnectUnified(ctx, req, ch)
+func HandleRPC(ctx context.Context, req *pb.RpcRequest, ch chan<- *pb.Response) {
+	slog.Info("HandleRPC (Native/Unified)", "path", req.Path)
+	HandleRPCUnified(ctx, req, ch)
 }

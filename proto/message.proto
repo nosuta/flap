@@ -15,7 +15,7 @@ message Request {
   oneof requests {
     Init init = 1;
     Cancel cancel = 4;
-    ConnectRequest connect_request = 10;
+    RpcRequest rpc_request = 10;
   }
 }
 
@@ -26,18 +26,18 @@ message Response {
     Done done = 6;
     Push push = 7;
     Request request = 8;
-    ConnectResponse connect_response = 10;
+    RpcResponse rpc_response = 10;
   }
 }
 
 // ConnectRequest
-message ConnectRequest {
+message RpcRequest {
   string path = 1;
   bytes payload = 2;
 }
 
 // ConnectResponse
-message ConnectResponse { bytes payload = 1; }
+message RpcResponse { bytes payload = 1; }
 
 // Push
 message Push {

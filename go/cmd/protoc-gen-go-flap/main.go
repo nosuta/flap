@@ -92,7 +92,7 @@ func generateService(g *protogen.GeneratedFile, service *protogen.Service) {
 	g.P()
 
 	// 2. Generate Router Section
-	g.P("func Handle", serviceName, "(ctx context.Context, req *ConnectRequest, ch chan<- *Response, handler ", interfaceName, ") bool {")
+	g.P("func Handle", serviceName, "(ctx context.Context, req *RpcRequest, ch chan<- *Response, handler ", interfaceName, ") bool {")
 	g.P("	switch req.Path {")
 	for _, method := range service.Methods {
 		if method.Desc.IsStreamingClient() {
@@ -115,7 +115,7 @@ func generateService(g *protogen.GeneratedFile, service *protogen.Service) {
 			g.P("		if err != nil {")
 			g.P("			ch <- &Response{Responses: &Response_Error{Error: &Error{Code: 500, Message: err.Error()}}}")
 			g.P("		} else {")
-			g.P("			ch <- &Response{Responses: &Response_ConnectResponse{ConnectResponse: &ConnectResponse{Payload: marshalHelper(resp)}}}")
+			g.P("			ch <- &Response{Responses: &Response_RpcResponse{RpcResponse: &RpcResponse{Payload: marshalHelper(resp)}}}")
 			g.P("		}")
 		}
 		g.P("		return true")

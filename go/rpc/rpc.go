@@ -104,21 +104,21 @@ func (r *rpc) Call(ctx context.Context, req *pb.Request) chan []byte {
 			if err := EntryPoint(databasePath, aek); err != nil {
 				sendError(ch, err, 500)
 			}
-		case *pb.Request_ConnectRequest:
-			slog.Info("request: connect", "path", v.ConnectRequest.Path)
-			// HandleConnect is expected to push one or more *pb.Response chunks to the channel.
-			connectCh := make(chan *pb.Response)
+		case *pb.Request_RpcRequest:
+			slog.Info("request: rpc", "path", v.RpcRequest.Path)
+			// HandleRPC is expected to push one or more *pb.Response chunks to the channel.
+			rpcCh := make(chan *pb.Response)
 			go func() {
-				HandleConnect(ctx, v.ConnectRequest, connectCh)
-				close(connectCh)
+				HandleRPC(ctx, v.RpcRequest, rpcCh)
+				close(rpcCh)
 			}()
-			for resp := range connectCh {
+			for resp := range rpcCh {
 				e, err := resp.MarshalVT()
 				if err != nil {
-					slog.Error("failed to marshal connect response", "error", err.Error())
+					slog.Error("failed to marshal RPC response", "error", err.Error())
 					continue
 				}
-				slog.Info("ConnectRequest: sending chunk to Dart", "len", len(e))
+				slog.Info("RPCRequest: sending chunk to Dart", "len", len(e))
 				ch <- e
 			}
 		default:

@@ -10,7 +10,7 @@ var (
 	nostrServer = &NostrServer{}
 )
 
-func HandleConnectUnified(ctx context.Context, req *pb.ConnectRequest, ch chan<- *pb.Response) {
+func HandleRPCUnified(ctx context.Context, req *pb.RpcRequest, ch chan<- *pb.Response) {
 	if pb.HandleEchoService(ctx, req, ch, echoServer) {
 		return
 	}

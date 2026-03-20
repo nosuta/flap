@@ -42,8 +42,8 @@ func (s *NostrServer) FetchNotes(ctx context.Context, req *pb.GetNotes, ch chan<
 		default:
 		}
 		ch <- &pb.Response{
-			Responses: &pb.Response_ConnectResponse{
-				ConnectResponse: &pb.ConnectResponse{
+			Responses: &pb.Response_RpcResponse{
+				RpcResponse: &pb.RpcResponse{
 					Payload: marshalHelper(notes.Notes[i]),
 				},
 			},

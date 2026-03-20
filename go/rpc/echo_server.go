@@ -20,8 +20,8 @@ func (s *EchoServer) ServerStream(ctx context.Context, req *pb.EchoRequest, ch c
 		msg := fmt.Sprintf("Stream %d: %s", i, req.Message)
 		slog.Debug("EchoServer.ServerStream: sending", "msg", msg)
 		ch <- &pb.Response{
-			Responses: &pb.Response_ConnectResponse{
-				ConnectResponse: &pb.ConnectResponse{
+			Responses: &pb.Response_RpcResponse{
+				RpcResponse: &pb.RpcResponse{
 					Payload: marshalHelper(&pb.EchoResponse{Message: msg}),
 				},
 			},

@@ -13,19 +13,19 @@ class Transport {
   ) async {
     final payload = (input as dynamic).writeToBuffer();
     final req = pb.Request(
-      connectRequest: pb.ConnectRequest(path: path, payload: payload),
+      rpcRequest: pb.RpcRequest(path: path, payload: payload),
     );
 
     final resp = await bridge.rpc(req);
     if (resp.hasError()) {
       throw Exception('[${resp.error.code}] ${resp.error.message}');
     }
-    if (!resp.hasConnectResponse()) {
-      throw Exception('Missing ConnectResponse');
+    if (!resp.hasRpcResponse()) {
+      throw Exception('Missing RpcResponse');
     }
 
     final output = outputFactory();
-    (output as dynamic).mergeFromBuffer(resp.connectResponse.payload);
+    (output as dynamic).mergeFromBuffer(resp.rpcResponse.payload);
     return output;
   }
 
@@ -36,7 +36,7 @@ class Transport {
   ) async* {
     final payload = (input as dynamic).writeToBuffer();
     final req = pb.Request(
-      connectRequest: pb.ConnectRequest(path: path, payload: payload),
+      rpcRequest: pb.RpcRequest(path: path, payload: payload),
     );
 
     final respStream = await bridge.rpcStream(req);
@@ -44,9 +44,9 @@ class Transport {
       if (resp.hasError()) {
         throw Exception('[${resp.error.code}] ${resp.error.message}');
       }
-      if (resp.hasConnectResponse()) {
+      if (resp.hasRpcResponse()) {
         final output = outputFactory();
-        (output as dynamic).mergeFromBuffer(resp.connectResponse.payload);
+        (output as dynamic).mergeFromBuffer(resp.rpcResponse.payload);
         yield output;
       }
     }
