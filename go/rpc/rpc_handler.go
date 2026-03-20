@@ -1,3 +1,5 @@
+// Code as template. ADD YOUR SERVICE HANDLERS.
+
 package rpc
 
 import (
@@ -10,7 +12,7 @@ var (
 	nostrServer = &NostrServer{}
 )
 
-func HandleRPCUnified(ctx context.Context, req *pb.RpcRequest, ch chan<- *pb.Response) {
+func HandleRPCImpl(ctx context.Context, req *pb.RpcRequest, ch chan<- *pb.Response) {
 	if pb.HandleEchoService(ctx, req, ch, echoServer) {
 		return
 	}

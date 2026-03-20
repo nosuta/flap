@@ -1,3 +1,5 @@
+// Code as template. DO NOT EDIT.
+
 package sqlite
 
 import (
