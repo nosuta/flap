@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"path"
+	"strings"
 
 	"google.golang.org/protobuf/compiler/protogen"
 )
@@ -21,7 +22,11 @@ func main() {
 }
 
 func generateFile(gen *protogen.Plugin, file *protogen.File, sharedEmitted map[string]bool) {
-	if len(file.Services) == 0 {
+	pushMessages := collectPushMessages(file)
+	hasPush := len(pushMessages) > 0
+	hasServices := len(file.Services) > 0
+
+	if !hasServices && !hasPush {
 		return
 	}
 
@@ -35,13 +40,46 @@ func generateFile(gen *protogen.Plugin, file *protogen.File, sharedEmitted map[s
 	g.P()
 	g.P("package ", file.GoPackageName)
 	g.P()
-	g.P("import (")
-	g.P(`	"context"`)
-	g.P(")")
-	g.P()
 
-	for _, service := range file.Services {
-		generateService(g, service)
+	if hasServices {
+		g.P("import (")
+		g.P(`	"context"`)
+		g.P(")")
+		g.P()
+		for _, service := range file.Services {
+			generateService(g, service)
+		}
+	}
+
+	if hasPush {
+		emitPushHelpers(g, pushMessages)
+	}
+}
+
+// collectPushMessages returns messages whose name starts with "Push" (excluding "Push" itself).
+func collectPushMessages(file *protogen.File) []*protogen.Message {
+	var result []*protogen.Message
+	for _, msg := range file.Messages {
+		name := string(msg.Desc.Name())
+		if strings.HasPrefix(name, "Push") && name != "Push" {
+			result = append(result, msg)
+		}
+	}
+	return result
+}
+
+// emitPushHelpers generates NewPushXxx constructor helpers for each Push-prefixed message.
+// Push is now a type-tagged payload (type string + payload bytes), analogous to RpcRequest.
+func emitPushHelpers(g *protogen.GeneratedFile, pushMessages []*protogen.Message) {
+	for _, msg := range pushMessages {
+		msgName := msg.GoIdent.GoName
+		// Full protobuf type name, e.g. "pb.PushNip05"
+		fullName := string(msg.Desc.FullName())
+		g.P("// New", msgName, " wraps ", msgName, " into a Push message.")
+		g.P("func New", msgName, "(msg *", msgName, ") *Push {")
+		g.P(`	return &Push{Type: "`, fullName, `", Payload: marshalHelper(msg)}`)
+		g.P("}")
+		g.P()
 	}
 }
 

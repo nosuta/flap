@@ -145,13 +145,9 @@ func (n *nos) FetchNotes(ctx context.Context, topic string, since, until *int64,
 		// if resp, err := fetch.Fetch(ctx, "https://reishisaza.com/.well-known/nostr.json"); err != nil {
 		slog.Error("failed to test http", "err", err)
 	} else {
-		if err := push(&pb.Push{
-			Type: &pb.Push_Nip05{
-				Nip05: &pb.PushNip05{
-					Id: fmt.Sprintf("fetched NIP-05 (%s)", name),
-				},
-			},
-		}); err != nil {
+		if err := push(pb.NewPushNip05(&pb.PushNip05{
+			Id: fmt.Sprintf("fetched NIP-05 (%s)", name),
+		})); err != nil {
 			slog.Error("failed to test push", "err", err)
 		}
 

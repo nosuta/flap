@@ -4,10 +4,6 @@ package pb;
 // Go package name
 option go_package = "flap/pb";
 import "core.proto";
-import "push.proto";
-
-// TODO: import your proto
-import "nostr.proto";
 
 // Request
 message Request {
@@ -39,12 +35,10 @@ message RpcRequest {
 // ConnectResponse
 message RpcResponse { bytes payload = 1; }
 
-// Push
+// Push carries any Push-prefixed message as a type-tagged payload,
+// analogous to RpcRequest/RpcResponse. Use the generated NewPushXxx
+// helpers on the Go side and PushHandler on the Dart side.
 message Push {
-  oneof type {
-    Error error = 1;
-    // TODO: ad your pushes here
-    Note note = 2 [deprecated = true];
-    PushNip05 nip05 = 3;
-  }
+  string type = 1;
+  bytes payload = 2;
 }

@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter/rendering.dart';
-import 'package:flutter/material.dart';
+import 'package:flap/pb/push.flap.dart';
+import 'package:flutter/rendering.dart';import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
 import 'package:statescope/statescope.dart';
@@ -15,7 +15,6 @@ import 'package:super_sliver_list/super_sliver_list.dart';
 
 import 'package:flap/bridge/bridge.dart';
 import 'package:flap/pb/nostr.pb.dart' as pbnostr;
-import 'package:flap/pb/message.pb.dart' as pbmessage;
 import 'package:flap/widgets/slivers/progress_indicator_header.dart';
 import 'package:flap/widgets/note.dart';
 import 'package:flap/widgets/scrollable_title.dart';
@@ -52,7 +51,7 @@ class _HomeState extends State<Home> {
   Int64 _oldest = Int64(-1);
   StreamSubscription<pbnostr.Note>? _topSubscription;
   StreamSubscription<pbnostr.Note>? _bottomSubscription;
-  StreamSubscription<pbmessage.Push>? _pushSubscription;
+  PushHandler? _pushHandler;
   String? _preferredLanguage;
   String _connectResult = '';
 
@@ -71,7 +70,7 @@ class _HomeState extends State<Home> {
   void dispose() {
     _topSubscription?.cancel();
     _bottomSubscription?.cancel();
-    _pushSubscription?.cancel();
+    _pushHandler?.dispose();
     _titleScrollController.dispose();
     _scrollController.dispose();
     _contextMenuController.remove();
@@ -220,9 +219,9 @@ class _HomeState extends State<Home> {
 
   Future<void> _subscribePush() async {
     final bridge = context.read<Bridge>();
-    _pushSubscription = bridge.push.listen((push) {
-      if (context.mounted && push.hasNip05()) {
-        final n = push.nip05;
+    _pushHandler = PushHandler(bridge.push);
+    _pushHandler!.nip05.listen((n) {
+      if (context.mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('push test: ${n.id}')));

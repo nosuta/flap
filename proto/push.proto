@@ -4,6 +4,10 @@ package pb;
 // Go package name
 option go_package = "flap/pb";
 
+// Push messages are automatically picked up by protoc-gen-go-flap and
+// protoc-gen-dart-flap. Add new Push-prefixed messages here and run
+// `make proto` — no changes to message.proto required.
+
 message PushNip05 {
     string id = 1;
 }
