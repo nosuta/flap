@@ -1,13 +1,16 @@
+// Code as template. ADD YOUR PUSH.
+//
+// Push messages are automatically picked up by the generator.
+// Add new Push-prefixed messages.
+//   example: message PushExample {}
+
 syntax = "proto3";
 // Dart package name
 package pb;
 // Go package name
 option go_package = "flap/pb";
 
-// Push messages are automatically picked up by protoc-gen-go-flap and
-// protoc-gen-dart-flap. Add new Push-prefixed messages here and run
-// `make proto` — no changes to message.proto required.
-
+// PushNip05
 message PushNip05 {
     string id = 1;
 }

@@ -10,7 +10,6 @@ import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'package:flap/pb/message.pb.dart';
 import 'package:flap/app_encryption_key/app_encryption_key.dart';
 import 'native_library.g.dart';
 

@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flap/bridge/bridge.dart';
-import 'package:flap/pb/message.pb.dart' as pb;
+import 'package:flap/pb/core.pb.dart' as pb;
 
 class Transport {
   final Bridge bridge;

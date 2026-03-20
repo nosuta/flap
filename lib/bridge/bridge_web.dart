@@ -7,7 +7,6 @@ import 'package:flutter/foundation.dart';
 import 'package:web/web.dart' as web;
 import 'package:logging/logging.dart';
 
-import 'package:flap/pb/message.pb.dart';
 import 'package:flap/pb/core.pb.dart';
 import 'package:flap/version/go_build_version.dart';
 import 'package:flap/app_encryption_key/app_encryption_key.dart';

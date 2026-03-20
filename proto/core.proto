@@ -6,26 +6,74 @@ package pb;
 // Go package name
 option go_package = "flap/pb";
 
+//////////////////////////////
+//        Primitives
+//////////////////////////////
+
+// Error
 message Error {
   int32 code = 1;
   string message = 2;
 }
 
+// Cancel
 message Cancel {
   int64 port = 3;
   int32 code = 1;
   string message = 2;
 }
 
+// Done
 message Done {
   int32 code = 1;
   string message = 2;
 }
 
+// Init
 message Init {
-  int64 pushPort = 1;
-  string tempDir = 2;
-  string supportDir = 3;
-  string documentsDir = 4;
-  string appEncryptionKey = 5;
+  int64 push_port = 1;
+  string temp_dir = 2;
+  string support_dir = 3;
+  string documents_dir = 4;
+  string app_encryption_key = 5;
+}
+
+//////////////////////////////
+//        Transport
+//////////////////////////////
+
+// Request
+message Request {
+  int64 port = 5;
+  oneof requests {
+    Init init = 1;
+    Cancel cancel = 4;
+    RpcRequest rpc_request = 10;
+  }
+}
+
+// Response
+message Response {
+  oneof responses {
+    Error error = 1;
+    Done done = 6;
+    Push push = 7;
+    Request request = 8;
+    RpcResponse rpc_response = 10;
+  }
+}
+
+// RpcRequest
+message RpcRequest {
+  string path = 1;
+  bytes payload = 2;
+}
+
+// RpcResponse
+message RpcResponse { bytes payload = 1; }
+
+// Push
+message Push {
+  string type = 1;
+  bytes payload = 2;
 }

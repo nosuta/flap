@@ -65,7 +65,7 @@ func generateFile(gen *protogen.Plugin, file *protogen.File) {
 	}
 
 	if hasPush {
-		g.P("import 'message.pb.dart';")
+		g.P("import 'core.pb.dart';")
 	}
 
 	g.P()
