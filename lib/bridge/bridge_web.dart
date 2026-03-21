@@ -173,6 +173,19 @@ class Bridge extends ChangeNotifier {
     return await rpcUnsafe(req);
   }
 
+  /// Sends a reply back to Go for a Go->Dart->Go call.
+  /// [replyPort] must match [Push.replyPort] from the incoming push.
+  Future<void> sendDartReply(Int64 replyPort, List<int> payload) async {
+    await _waitReady();
+    final req = Request(
+      dartReply: DartReply(replyPort: replyPort, payload: payload),
+    );
+    final resp = await rpcUnsafe(req);
+    if (resp.hasError()) {
+      _log.severe('sendDartReply error: ${resp.error.message}');
+    }
+  }
+
   Future<Stream<Response>> rpcStream(Request req) async {
     await _waitReady();
 

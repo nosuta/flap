@@ -221,6 +221,19 @@ class Bridge extends ChangeNotifier {
     _pushController.sink.add(resp.push);
   }
 
+  /// Sends a reply back to Go for a Go->Dart->Go call.
+  /// [replyPort] must match [Push.replyPort] from the incoming push.
+  Future<void> sendDartReply(Int64 replyPort, List<int> payload) async {
+    await _waitReady();
+    final req = Request(
+      dartReply: DartReply(replyPort: replyPort, payload: payload),
+    );
+    final resp = await rpc(req);
+    if (resp.hasError()) {
+      _log.severe('sendDartReply error: ${resp.error.message}');
+    }
+  }
+
   Pointer<BytesContainer> _bytesToBytesContainerPointer(Uint8List bytes) {
     final n = bytes.length;
     final bytesHeap = malloc<Uint8>(n);

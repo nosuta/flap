@@ -19,6 +19,10 @@ type rpc struct {
 	nativePushPort int64
 	pusher         pusher.Pusher
 	cancels        map[int64]context.CancelFunc
+	// dartReplies holds pending Go->Dart->Go calls keyed by reply_port.
+	dartReplies map[int64]chan []byte
+	dartReplyMu sync.Mutex
+	dartReplyID int64
 }
 
 func RPC() *rpc {
@@ -26,7 +30,8 @@ func RPC() *rpc {
 		return instance
 	}
 	instance = &rpc{
-		cancels: make(map[int64]context.CancelFunc, 0),
+		cancels:     make(map[int64]context.CancelFunc, 0),
+		dartReplies: make(map[int64]chan []byte),
 	}
 	return instance
 }
@@ -121,6 +126,9 @@ func (r *rpc) Call(ctx context.Context, req *pb.Request) chan []byte {
 				slog.Info("RPCRequest: sending chunk to Dart", "len", len(e))
 				ch <- e
 			}
+		case *pb.Request_DartReply:
+			slog.Info("request: dart_reply", "port", v.DartReply.ReplyPort)
+			r.ReceiveDartReply(v.DartReply.ReplyPort, v.DartReply.Payload)
 		default:
 			err := fmt.Errorf("unsupported request: %T", v)
 			sendError(ch, err, 500)
@@ -149,4 +157,51 @@ func sendError(ch chan<- []byte, err error, code int32) {
 		panic(err)
 	}
 	ch <- e
+}
+
+// CallDart sends a Push to Dart with a reply_port set, then blocks until Dart
+// calls back via ReceiveDartReply or ctx is cancelled.
+// The returned bytes are the raw payload sent back by Dart.
+func (r *rpc) CallDart(ctx context.Context, push *pb.Push) ([]byte, error) {
+	r.dartReplyMu.Lock()
+	r.dartReplyID++
+	replyPort := r.dartReplyID
+	ch := make(chan []byte, 1)
+	r.dartReplies[replyPort] = ch
+	r.dartReplyMu.Unlock()
+
+	push.ReplyPort = replyPort
+	if err := r.Push(push); err != nil {
+		r.dartReplyMu.Lock()
+		delete(r.dartReplies, replyPort)
+		r.dartReplyMu.Unlock()
+		return nil, fmt.Errorf("CallDart: push failed: %w", err)
+	}
+
+	select {
+	case <-ctx.Done():
+		r.dartReplyMu.Lock()
+		delete(r.dartReplies, replyPort)
+		r.dartReplyMu.Unlock()
+		return nil, ctx.Err()
+	case payload := <-ch:
+		return payload, nil
+	}
+}
+
+// ReceiveDartReply is called by the bridge when Dart sends a reply to a
+// Go->Dart->Go call. port must match the reply_port that was set in the Push.
+func (r *rpc) ReceiveDartReply(port int64, payload []byte) {
+	r.dartReplyMu.Lock()
+	ch, ok := r.dartReplies[port]
+	if ok {
+		delete(r.dartReplies, port)
+	}
+	r.dartReplyMu.Unlock()
+
+	if !ok {
+		slog.Warn("ReceiveDartReply: unknown port", "port", port)
+		return
+	}
+	ch <- payload
 }
