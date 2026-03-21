@@ -5,22 +5,31 @@ import (
 	"os/exec"
 )
 
+const (
+	colorReset  = "\033[0m"
+	colorGreen  = "\033[32m"
+	colorRed    = "\033[31m"
+	colorYellow = "\033[33m"
+)
+
 func checkDeps() bool {
 	allOk := true
 	for _, t := range requiredTools {
 		if !t.detect() {
-			fmt.Printf("  ✗ %-10s not found — install: %s\n", t.name, t.hint)
+			fmt.Printf("  %s✗%s %-10s not found — install: %s%s%s\n",
+				colorRed, colorReset, t.name, colorYellow, t.hint, colorReset)
 			allOk = false
 		} else {
-			fmt.Printf("  ✓ %s\n", t.name)
+			fmt.Printf("  %s✓%s %s\n", colorGreen, colorReset, t.name)
 		}
 	}
 	// Chrome is checked separately due to OS-specific paths
 	if !checkChrome() {
-		fmt.Printf("  ✗ %-10s not found — install: https://www.google.com/chrome/\n", "chrome")
+		fmt.Printf("  %s✗%s %-10s not found — install: %shttps://www.google.com/chrome/%s\n",
+			colorRed, colorReset, "chrome", colorYellow, colorReset)
 		allOk = false
 	} else {
-		fmt.Printf("  ✓ %s\n", "chrome")
+		fmt.Printf("  %s✓%s %s\n", colorGreen, colorReset, "chrome")
 	}
 	return allOk
 }

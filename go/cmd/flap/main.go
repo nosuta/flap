@@ -33,7 +33,7 @@ func main() {
 	if !checkDeps() {
 		os.Exit(1)
 	}
-	fmt.Println("✓ All dependencies found")
+	fmt.Printf("%s✓%s All dependencies found\n", colorGreen, colorReset)
 	fmt.Println()
 
 	// 2. interactive prompts
@@ -78,7 +78,7 @@ func main() {
 	}
 
 	fmt.Println()
-	fmt.Printf("✓ Project created at ./%s\n", cfg.dir)
+	fmt.Printf("%s✓%s Project created at ./%s\n", colorGreen, colorReset, cfg.dir)
 	fmt.Println()
 	fmt.Printf("  cd %s\n", cfg.dir)
 	fmt.Println("  make -s web_run       # run in browser")
@@ -87,6 +87,6 @@ func main() {
 }
 
 func fatalf(format string, args ...any) {
-	fmt.Fprintf(os.Stderr, "✗ "+format+"\n", args...)
+	fmt.Fprintf(os.Stderr, colorRed+"✗"+colorReset+" "+format+"\n", args...)
 	os.Exit(1)
 }

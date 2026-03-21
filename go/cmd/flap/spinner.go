@@ -36,10 +36,10 @@ func task(label, dir, name string, args ...string) error {
 			if err != nil {
 				// print buffered output then error indicator
 				fmt.Fprint(os.Stderr, buf.String())
-				fmt.Fprintf(os.Stderr, "✗ %s\n", label)
+				fmt.Fprintf(os.Stderr, colorRed+"✗"+colorReset+" %s\n", label)
 				return err
 			}
-			fmt.Printf("✓ %s\n", label)
+			fmt.Printf(colorGreen+"✓"+colorReset+" %s\n", label)
 			return nil
 		case <-time.After(80 * time.Millisecond):
 			clearLine()
@@ -64,10 +64,10 @@ func taskFn(label string, fn func() error) error {
 		case err := <-done:
 			clearLine()
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "✗ %s: %v\n", label, err)
+				fmt.Fprintf(os.Stderr, colorRed+"✗"+colorReset+" %s: %v\n", label, err)
 				return err
 			}
-			fmt.Printf("✓ %s\n", label)
+			fmt.Printf(colorGreen+"✓"+colorReset+" %s\n", label)
 			return nil
 		case <-time.After(80 * time.Millisecond):
 			clearLine()
