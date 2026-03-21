@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flap/pb/push.flap.dart';
 import 'package:flutter/rendering.dart';import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
@@ -22,6 +21,7 @@ import 'package:flap/pb/echo.flap.dart';
 import 'package:flap/pb/echo.pb.dart' as pbecho;
 import 'package:flap/pb/nostr.flap.dart';
 import 'package:flap/pb/push.flap.dart' as push;
+import 'package:flap/reverse_handlers/reverse_handlers.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key, required this.title});
@@ -39,6 +39,7 @@ class _HomeState extends State<Home> {
   final _sliverStableListKey = GlobalKey();
   final _contextMenuController = ContextMenuController();
   final _focusNode = FocusNode();
+  final _deviceLocaleHandler = DeviceLocaleHandler();
 
   bool _loadingTop = false;
   bool _pullingTop = false;
@@ -76,6 +77,7 @@ class _HomeState extends State<Home> {
     _scrollController.dispose();
     _contextMenuController.remove();
     _focusNode.dispose();
+    _deviceLocaleHandler.dispose();
     super.dispose();
   }
 

@@ -178,6 +178,9 @@ func generatePushHandler(g *protogen.GeneratedFile, basename string, pushMessage
 // generateReverseServiceHandler generates a self-contained abstract class.
 // The constructor subscribes to Bridge().push and handles its own paths,
 // so the implementor just needs to instantiate the subclass.
+// generateReverseServiceHandler generates a self-contained abstract class.
+// The constructor subscribes to Bridge().push and handles its own paths,
+// so the implementor just needs to instantiate the subclass.
 func generateReverseServiceHandler(g *protogen.GeneratedFile, service *protogen.Service) {
 	handlerName := service.GoName + "Handler"
 	noopName := "_" + service.GoName + "NoOp"
@@ -194,16 +197,20 @@ func generateReverseServiceHandler(g *protogen.GeneratedFile, service *protogen.
 	g.P("/// ", handlerName, " handles Go->Dart->Go calls for ", service.GoName, ".")
 	g.P("/// Extend this class and implement the abstract methods.")
 	g.P("/// Instantiating the subclass is all that is needed — it self-registers,")
-	g.P("/// automatically disposing the previous handler (including the default no-op).")
+	g.P("/// automatically disposing the previous handler.")
 	g.P("abstract class ", handlerName, " {")
-	g.P("  final Bridge _bridge = Bridge();")
-	g.P("  late final StreamSubscription<Push> _subscription;")
+	g.P("  late final Bridge _bridge;")
+	g.P("  StreamSubscription<Push>? _subscription;")
 	g.P()
 	g.P("  ", handlerName, "() {")
-	g.P("    ", globalVar, ".dispose(); // dispose previous (no-op or prior impl)")
+	g.P("    _bridge = Bridge();")
+	g.P("    ", globalVar, ".dispose();")
 	g.P("    ", globalVar, " = this;")
 	g.P("    _subscription = _bridge.push.listen(_dispatch);")
 	g.P("  }")
+	g.P()
+	g.P("  // Internal constructor for no-op — skips registration and Bridge().")
+	g.P("  ", handlerName, "._noOp();")
 	g.P()
 
 	for _, m := range methods {
@@ -213,7 +220,7 @@ func generateReverseServiceHandler(g *protogen.GeneratedFile, service *protogen.
 	}
 
 	g.P()
-	g.P("  void dispose() => _subscription.cancel();")
+	g.P("  void dispose() => _subscription?.cancel();")
 	g.P()
 	g.P("  void _dispatch(Push push) {")
 	g.P("    if (push.reversePort == Int64.ZERO) return;")
@@ -235,21 +242,22 @@ func generateReverseServiceHandler(g *protogen.GeneratedFile, service *protogen.
 	g.P("}")
 	g.P()
 
-	// no-op — registered by default, replaced when a real handler is instantiated.
+	// no-op — does not call super, holds no subscription, dispose() is a no-op.
+	// Stored as the initial value of the global so the real handler can call dispose() safely.
 	g.P("class ", noopName, " extends ", handlerName, " {")
-	g.P("  // no-op: skip the registration logic in the super constructor")
-	g.P("  ", noopName, "._() {")
-	g.P("    _subscription = _bridge.push.listen(_dispatch);")
-	g.P("  }")
+	g.P("  // Bypasses super constructor — no Bridge(), no subscription.")
+	g.P("  ", noopName, "._() : super._noOp();")
 	for _, m := range methods {
 		outName := m.Output.GoIdent.GoName
 		inName := m.Input.GoIdent.GoName
 		g.P("  @override")
 		g.P("  Future<", outName, "> ", toCamelCase(m.GoName), "(", inName, " request) async => ", outName, "();")
 	}
+	g.P("  @override")
+	g.P("  void _dispatch(Push push) {} // no-op")
 	g.P("}")
 	g.P()
-	g.P("// Global singleton — replaced when a real handler is instantiated.")
+	g.P("// Global singleton — starts as no-op, replaced when a real handler is instantiated.")
 	g.P("// ignore: prefer_final_fields")
 	g.P(handlerName, " ", globalVar, " = ", noopName, "._();")
 	g.P()

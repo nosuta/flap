@@ -153,15 +153,13 @@ func (n *nos) FetchNotes(ctx context.Context, topic string, since, until *int64,
 
 	}
 
-	// if err := push(&pb.Push{
-	// 	Type: &pb.Push_Note{
-	// 		Note: &pb.Note{
-	// 			Id: "push push",
-	// 		},
-	// 	},
-	// }); err != nil {
-	// 	slog.Error("failed to test push", "err", err)
-	// }
+	resp, err := pb.ReverseDeviceReverseServiceGetDeviceLocale(ctx, &pb.GetDeviceLocaleRequest{})
+	if err != nil {
+		return nil, err
+	}
+
+	loc := resp.GetLocale()
+	slog.Debug("Reverse Device Locale", "locale", loc)
 
 	tagmap := nostr.TagMap{}
 	if len(topic) > 0 {
