@@ -24,9 +24,17 @@ func main() {
 func generateFile(gen *protogen.Plugin, file *protogen.File, sharedEmitted map[string]bool) {
 	pushMessages := collectPushMessages(file)
 	hasPush := len(pushMessages) > 0
-	hasServices := len(file.Services) > 0
 
-	if !hasServices && !hasPush {
+	var normalServices, reverseServices []*protogen.Service
+	for _, svc := range file.Services {
+		if strings.HasSuffix(string(svc.Desc.Name()), "ReverseService") {
+			reverseServices = append(reverseServices, svc)
+		} else {
+			normalServices = append(normalServices, svc)
+		}
+	}
+
+	if len(normalServices) == 0 && len(reverseServices) == 0 && !hasPush {
 		return
 	}
 
@@ -41,14 +49,20 @@ func generateFile(gen *protogen.Plugin, file *protogen.File, sharedEmitted map[s
 	g.P("package ", file.GoPackageName)
 	g.P()
 
-	if hasServices {
+	needsContext := len(normalServices) > 0 || len(reverseServices) > 0
+	if needsContext {
 		g.P("import (")
 		g.P(`	"context"`)
 		g.P(")")
 		g.P()
-		for _, service := range file.Services {
-			generateService(g, service)
-		}
+	}
+
+	for _, svc := range normalServices {
+		generateNormalService(g, svc)
+	}
+
+	for _, svc := range reverseServices {
+		generateReverseService(g, svc)
 	}
 
 	if hasPush {
@@ -69,11 +83,9 @@ func collectPushMessages(file *protogen.File) []*protogen.Message {
 }
 
 // emitPushHelpers generates NewPushXxx constructor helpers for each Push-prefixed message.
-// Push is now a type-tagged payload (type string + payload bytes), analogous to RpcRequest.
 func emitPushHelpers(g *protogen.GeneratedFile, pushMessages []*protogen.Message) {
 	for _, msg := range pushMessages {
 		msgName := msg.GoIdent.GoName
-		// Full protobuf type name, e.g. "pb.PushNip05"
 		fullName := string(msg.Desc.FullName())
 		g.P("// New", msgName, " wraps ", msgName, " into a Push message.")
 		g.P("func New", msgName, "(msg *", msgName, ") *Push {")
@@ -84,7 +96,6 @@ func emitPushHelpers(g *protogen.GeneratedFile, pushMessages []*protogen.Message
 }
 
 func generateSharedFile(gen *protogen.Plugin, file *protogen.File, sharedEmitted map[string]bool) {
-	// Emit once per output directory (package) to avoid duplicate definitions.
 	outDir := path.Dir(file.GeneratedFilenamePrefix)
 	if sharedEmitted[outDir] {
 		return
@@ -99,6 +110,8 @@ func generateSharedFile(gen *protogen.Plugin, file *protogen.File, sharedEmitted
 	g.P()
 	g.P("package ", file.GoPackageName)
 	g.P()
+	g.P("import \"context\"")
+	g.P()
 	g.P("func marshalHelper(msg interface{ MarshalVT() ([]byte, error) }) []byte {")
 	g.P("	b, err := msg.MarshalVT()")
 	g.P("	if err != nil {")
@@ -107,18 +120,27 @@ func generateSharedFile(gen *protogen.Plugin, file *protogen.File, sharedEmitted
 	g.P("	return b")
 	g.P("}")
 	g.P()
+	g.P("// ReverseCallFn is called by generated ReverseService functions to send a Push")
+	g.P("// to Dart and wait for a ReverseResponse. Set this at startup (e.g. in rpc.Init).")
+	g.P("var reverseCallFn func(ctx context.Context, push *Push) ([]byte, error)")
+	g.P()
+	g.P("// SetReverseCallFn wires the ReverseService caller. Called once during init.")
+	g.P("func SetReverseCallFn(fn func(ctx context.Context, push *Push) ([]byte, error)) {")
+	g.P("	reverseCallFn = fn")
+	g.P("}")
+	g.P()
 }
 
-func generateService(g *protogen.GeneratedFile, service *protogen.Service) {
+// generateNormalService generates the server-side handler interface and router (Dart->Go).
+func generateNormalService(g *protogen.GeneratedFile, service *protogen.Service) {
 	serviceName := service.GoName
 	interfaceName := serviceName + "Handler"
 
-	// 1. Generate Interface
 	g.P("// ", interfaceName, " is the server interface for the ", serviceName, " service.")
 	g.P("type ", interfaceName, " interface {")
 	for _, method := range service.Methods {
 		if method.Desc.IsStreamingClient() {
-			continue // Not supported yet
+			continue
 		}
 		if method.Desc.IsStreamingServer() {
 			g.P("	", method.GoName, "(ctx context.Context, req *", method.Input.GoIdent.GoName, ", ch chan<- *Response) error")
@@ -129,7 +151,6 @@ func generateService(g *protogen.GeneratedFile, service *protogen.Service) {
 	g.P("}")
 	g.P()
 
-	// 2. Generate Router Section
 	g.P("func Handle", serviceName, "(ctx context.Context, req *RpcRequest, ch chan<- *Response, handler ", interfaceName, ") bool {")
 	g.P("	switch req.Path {")
 	for _, method := range service.Methods {
@@ -162,4 +183,36 @@ func generateService(g *protogen.GeneratedFile, service *protogen.Service) {
 	g.P("	return false")
 	g.P("}")
 	g.P()
+}
+
+// generateReverseService generates the client-side caller (Go->Dart) using ReverseCall.
+// Only unary methods are supported (no streaming from Go side).
+func generateReverseService(g *protogen.GeneratedFile, service *protogen.Service) {
+	serviceName := service.GoName
+
+	g.P("// ", serviceName, "Caller contains generated ReverseCall helpers for ", serviceName, ".")
+	g.P("// Each function sends a Push to Dart and waits for a ReverseResponse.")
+	for _, method := range service.Methods {
+		if method.Desc.IsStreamingClient() || method.Desc.IsStreamingServer() {
+			continue // streaming not supported for ReverseService
+		}
+		fullPath := fmt.Sprintf("/%s/%s", service.Desc.FullName(), method.Desc.Name())
+		funcName := "Reverse" + serviceName + method.GoName
+		inName := method.Input.GoIdent.GoName
+		outName := method.Output.GoIdent.GoName
+
+		g.P("func ", funcName, "(ctx context.Context, req *", inName, ") (*", outName, ", error) {")
+		g.P(`	push := &Push{Type: "`, fullPath, `", Payload: marshalHelper(req)}`)
+		g.P("	payload, err := reverseCallFn(ctx, push)")
+		g.P("	if err != nil {")
+		g.P("		return nil, err")
+		g.P("	}")
+		g.P("	var resp ", outName)
+		g.P("	if err := resp.UnmarshalVT(payload); err != nil {")
+		g.P("		return nil, err")
+		g.P("	}")
+		g.P("	return &resp, nil")
+		g.P("}")
+		g.P()
+	}
 }

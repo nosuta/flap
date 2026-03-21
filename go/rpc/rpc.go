@@ -19,10 +19,10 @@ type rpc struct {
 	nativePushPort int64
 	pusher         pusher.Pusher
 	cancels        map[int64]context.CancelFunc
-	// dartReplies holds pending Go->Dart->Go calls keyed by reply_port.
-	dartReplies map[int64]chan []byte
-	dartReplyMu sync.Mutex
-	dartReplyID int64
+	// reversePending holds pending Go->Dart->Go ReverseService calls keyed by reverse_port.
+	reversePending map[int64]chan []byte
+	reverseMu      sync.Mutex
+	reverseID      int64
 }
 
 func RPC() *rpc {
@@ -30,9 +30,10 @@ func RPC() *rpc {
 		return instance
 	}
 	instance = &rpc{
-		cancels:     make(map[int64]context.CancelFunc, 0),
-		dartReplies: make(map[int64]chan []byte),
+		cancels:        make(map[int64]context.CancelFunc, 0),
+		reversePending: make(map[int64]chan []byte),
 	}
+	pb.SetReverseCallFn(instance.ReverseCall)
 	return instance
 }
 
@@ -111,7 +112,6 @@ func (r *rpc) Call(ctx context.Context, req *pb.Request) chan []byte {
 			}
 		case *pb.Request_RpcRequest:
 			slog.Info("request: rpc", "path", v.RpcRequest.Path)
-			// HandleRPC is expected to push one or more *pb.Response chunks to the channel.
 			rpcCh := make(chan *pb.Response)
 			go func() {
 				HandleRPC(ctx, v.RpcRequest, rpcCh)
@@ -126,9 +126,9 @@ func (r *rpc) Call(ctx context.Context, req *pb.Request) chan []byte {
 				slog.Info("RPCRequest: sending chunk to Dart", "len", len(e))
 				ch <- e
 			}
-		case *pb.Request_DartReply:
-			slog.Info("request: dart_reply", "port", v.DartReply.ReplyPort)
-			r.ReceiveDartReply(v.DartReply.ReplyPort, v.DartReply.Payload)
+		case *pb.Request_ReverseResponse:
+			slog.Info("request: reverse_response", "port", v.ReverseResponse.ReversePort)
+			r.receiveReverseResponse(v.ReverseResponse.ReversePort, v.ReverseResponse.Payload)
 		default:
 			err := fmt.Errorf("unsupported request: %T", v)
 			sendError(ch, err, 500)
@@ -159,48 +159,47 @@ func sendError(ch chan<- []byte, err error, code int32) {
 	ch <- e
 }
 
-// CallDart sends a Push to Dart with a reply_port set, then blocks until Dart
-// calls back via ReceiveDartReply or ctx is cancelled.
-// The returned bytes are the raw payload sent back by Dart.
-func (r *rpc) CallDart(ctx context.Context, push *pb.Push) ([]byte, error) {
-	r.dartReplyMu.Lock()
-	r.dartReplyID++
-	replyPort := r.dartReplyID
+// ReverseCall sends a Push to Dart with a reverse_port set, then blocks until
+// Dart replies via a ReverseResponse request or ctx is cancelled.
+// Used by generated ReverseService client code.
+func (r *rpc) ReverseCall(ctx context.Context, push *pb.Push) ([]byte, error) {
+	r.reverseMu.Lock()
+	r.reverseID++
+	reversePort := r.reverseID
 	ch := make(chan []byte, 1)
-	r.dartReplies[replyPort] = ch
-	r.dartReplyMu.Unlock()
+	r.reversePending[reversePort] = ch
+	r.reverseMu.Unlock()
 
-	push.ReplyPort = replyPort
+	push.ReversePort = reversePort
 	if err := r.Push(push); err != nil {
-		r.dartReplyMu.Lock()
-		delete(r.dartReplies, replyPort)
-		r.dartReplyMu.Unlock()
-		return nil, fmt.Errorf("CallDart: push failed: %w", err)
+		r.reverseMu.Lock()
+		delete(r.reversePending, reversePort)
+		r.reverseMu.Unlock()
+		return nil, fmt.Errorf("ReverseCall: push failed: %w", err)
 	}
 
 	select {
 	case <-ctx.Done():
-		r.dartReplyMu.Lock()
-		delete(r.dartReplies, replyPort)
-		r.dartReplyMu.Unlock()
+		r.reverseMu.Lock()
+		delete(r.reversePending, reversePort)
+		r.reverseMu.Unlock()
 		return nil, ctx.Err()
 	case payload := <-ch:
 		return payload, nil
 	}
 }
 
-// ReceiveDartReply is called by the bridge when Dart sends a reply to a
-// Go->Dart->Go call. port must match the reply_port that was set in the Push.
-func (r *rpc) ReceiveDartReply(port int64, payload []byte) {
-	r.dartReplyMu.Lock()
-	ch, ok := r.dartReplies[port]
+// receiveReverseResponse is called when Dart sends a ReverseResponse back to Go.
+func (r *rpc) receiveReverseResponse(port int64, payload []byte) {
+	r.reverseMu.Lock()
+	ch, ok := r.reversePending[port]
 	if ok {
-		delete(r.dartReplies, port)
+		delete(r.reversePending, port)
 	}
-	r.dartReplyMu.Unlock()
+	r.reverseMu.Unlock()
 
 	if !ok {
-		slog.Warn("ReceiveDartReply: unknown port", "port", port)
+		slog.Warn("receiveReverseResponse: unknown port", "port", port)
 		return
 	}
 	ch <- payload

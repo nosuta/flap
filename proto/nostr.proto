@@ -60,3 +60,10 @@ service NostrService {
   rpc FetchProfile(GetProfile) returns (Profile);
   rpc FetchNotes(GetNotes) returns (stream Note);
 }
+// Example ReverseService: Go calls Dart to get device info.
+service DeviceReverseService {
+  rpc GetDeviceLocale(GetDeviceLocaleRequest) returns (GetDeviceLocaleResponse);
+}
+
+message GetDeviceLocaleRequest {}
+message GetDeviceLocaleResponse { string locale = 1; }

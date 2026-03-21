@@ -21,6 +21,7 @@ import 'package:flap/widgets/scrollable_title.dart';
 import 'package:flap/pb/echo.flap.dart';
 import 'package:flap/pb/echo.pb.dart' as pbecho;
 import 'package:flap/pb/nostr.flap.dart';
+import 'package:flap/pb/push.flap.dart' as push;
 
 class Home extends StatefulWidget {
   const Home({super.key, required this.title});
@@ -51,7 +52,7 @@ class _HomeState extends State<Home> {
   Int64 _oldest = Int64(-1);
   StreamSubscription<pbnostr.Note>? _topSubscription;
   StreamSubscription<pbnostr.Note>? _bottomSubscription;
-  PushHandler? _pushHandler;
+  push.PushHandler? _pushHandler;
   String? _preferredLanguage;
   String _connectResult = '';
 
@@ -219,7 +220,7 @@ class _HomeState extends State<Home> {
 
   Future<void> _subscribePush() async {
     final bridge = context.read<Bridge>();
-    _pushHandler = PushHandler(bridge.push);
+    _pushHandler = push.PushHandler(bridge.push);
     _pushHandler!.nip05.listen((n) {
       if (context.mounted) {
         ScaffoldMessenger.of(
