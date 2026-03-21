@@ -197,7 +197,7 @@ func generateReverseService(g *protogen.GeneratedFile, service *protogen.Service
 			continue // streaming not supported for ReverseService
 		}
 		fullPath := fmt.Sprintf("/%s/%s", service.Desc.FullName(), method.Desc.Name())
-		funcName := "Reverse" + serviceName + method.GoName
+		funcName := "Reverse" + strings.TrimSuffix(serviceName, "ReverseService") + method.GoName
 		inName := method.Input.GoIdent.GoName
 		outName := method.Output.GoIdent.GoName
 

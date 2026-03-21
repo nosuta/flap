@@ -61,9 +61,13 @@ service NostrService {
   rpc FetchNotes(GetNotes) returns (stream Note);
 }
 // Example ReverseService: Go calls Dart to get device info.
-service DeviceReverseService {
-  rpc GetDeviceLocale(GetDeviceLocaleRequest) returns (GetDeviceLocaleResponse);
+service NostrReverseService {
+  rpc Nip07SignEvent(Nip07SignEventRequest) returns (Nip07SignEventResponse);
 }
 
-message GetDeviceLocaleRequest {}
-message GetDeviceLocaleResponse { string locale = 1; }
+message Nip07SignEventRequest {
+  string event = 1;
+}
+message Nip07SignEventResponse {
+   string signed_event = 1;
+}

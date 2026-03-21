@@ -39,7 +39,7 @@ class _HomeState extends State<Home> {
   final _sliverStableListKey = GlobalKey();
   final _contextMenuController = ContextMenuController();
   final _focusNode = FocusNode();
-  final _deviceLocaleHandler = DeviceLocaleHandler();
+  final _nostrReverseHandler = NostrReverse();
 
   bool _loadingTop = false;
   bool _pullingTop = false;
@@ -77,7 +77,7 @@ class _HomeState extends State<Home> {
     _scrollController.dispose();
     _contextMenuController.remove();
     _focusNode.dispose();
-    _deviceLocaleHandler.dispose();
+    _nostrReverseHandler.dispose();
     super.dispose();
   }
 

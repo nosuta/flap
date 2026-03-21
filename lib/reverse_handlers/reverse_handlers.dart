@@ -1,9 +1,16 @@
 import 'package:flap/pb/nostr.pb.dart';
 import 'package:flap/pb/nostr.flap.dart';
+import 'package:flap/helpers/nip07.dart';
 
-class DeviceLocaleHandler extends DeviceReverseServiceHandler {
+class NostrReverse extends NostrReverseServiceHandler {
   @override
-  Future<GetDeviceLocaleResponse> getDeviceLocale(GetDeviceLocaleRequest req) async {
-    return GetDeviceLocaleResponse(locale: 'ja_JP');
+  Future<Nip07SignEventResponse> nip07SignEvent(Nip07SignEventRequest req) async {
+    String? signedEvent;
+    try { 
+      signedEvent = await Nip07.signEvent(req.event);
+    } catch(e) {
+      signedEvent = null;
+    }
+    return Nip07SignEventResponse(signedEvent: signedEvent);
   }
 }
