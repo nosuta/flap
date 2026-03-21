@@ -25,7 +25,7 @@ func cloneTemplate(cfg config) error {
 		return fmt.Errorf("directory %q already exists", cfg.dir)
 	}
 	args := []string{"clone", "--depth=1"}
-	if Version != "dev" {
+	if Version != "latest" {
 		args = append(args, "--branch", Version)
 	}
 	args = append(args, templateRepo, cfg.dir)

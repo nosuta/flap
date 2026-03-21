@@ -294,7 +294,7 @@ action: ## Test GitHub Action locally
 	act -s GITHUB_TOKEN="$(shell gh auth token)" --container-architecture linux/amd64
 .PHONY: action
 
-FLAP_VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null || echo "dev")
+FLAP_VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null || echo "latest")
 
 flap: ## Install flap CLI
 	go install -C go -ldflags="-X main.Version=$(FLAP_VERSION)" ./cmd/flap

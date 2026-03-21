@@ -39,10 +39,14 @@ func main() {
 	// set version
 	if len(os.Args) > 1 {
 		v := os.Args[1]
-		if err := checkRemoteTag(v); err != nil {
-			fatalf("%v", err)
+		if v == "latest" {
+			Version = "latest"
+		} else {
+			if err := checkRemoteTag(v); err != nil {
+				fatalf("%v", err)
+			}
+			Version = v
 		}
-		Version = v
 	}
 	fmt.Printf("Using version %s\n", Version)
 	fmt.Println()
