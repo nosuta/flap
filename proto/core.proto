@@ -58,7 +58,6 @@ message Response {
     Error error = 1;
     Done done = 6;
     Push push = 7;
-    Request request = 8;
     RpcResponse rpc_response = 10;
   }
 }

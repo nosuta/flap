@@ -25,7 +25,6 @@ class Bridge extends ChangeNotifier {
 
     _worker = w;
     _pushController = StreamController<Push>.broadcast();
-    _requestController = StreamController<Request>.broadcast();
   }
   factory Bridge() {
     _instance ??= Bridge._();
@@ -34,12 +33,10 @@ class Bridge extends ChangeNotifier {
 
   bool get ready => _ready;
   Stream<Push> get push => _pushController.stream;
-  Stream<Request> get request => _requestController.stream;
 
   final _log = Logger('Bridge Web');
   late final web.Worker _worker;
   late final StreamController<Push> _pushController;
-  late final StreamController<Request> _requestController;
 
   Int64 _port = Int64(0);
   bool _ready = false;
@@ -48,7 +45,6 @@ class Bridge extends ChangeNotifier {
   @override
   void dispose() {
     _pushController.close();
-    _requestController.close();
     _worker.terminate();
     super.dispose();
   }
@@ -102,10 +98,7 @@ class Bridge extends ChangeNotifier {
     } else if (resp.hasPush()) {
       _pushController.sink.add(resp.push);
       return;
-    } else if (resp.hasRequest()) {
-      _requestController.sink.add(resp.request);
-      return;
-    }
+    } 
     _log.shout('unknown fatal situation');
     _fatal = true;
   }
