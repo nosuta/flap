@@ -93,10 +93,7 @@ func generateFile(gen *protogen.Plugin, file *protogen.File) {
 	}
 
 	if hasPush {
-		generatePushHandler(g, basename, pushMessages, reverseServices)
-	} else if len(reverseServices) > 0 {
-		// PushHandler is needed even without Push messages to dispatch reverse calls
-		generatePushHandler(g, basename, nil, reverseServices)
+		generatePushHandler(g, basename, pushMessages)
 	}
 }
 
@@ -112,16 +109,10 @@ func collectPushMessages(file *protogen.File) []*protogen.Message {
 	return result
 }
 
-func generatePushHandler(g *protogen.GeneratedFile, basename string, pushMessages []*protogen.Message, reverseServices []*protogen.Service) {
-	hasReverse := len(reverseServices) > 0
-
-	g.P("/// PushHandler dispatches incoming [Push] messages to typed streams")
-	g.P("/// and handles Go->Dart->Go ReverseService calls.")
+func generatePushHandler(g *protogen.GeneratedFile, basename string, pushMessages []*protogen.Message) {
+	g.P("/// PushHandler dispatches incoming fire-and-forget [Push] messages to typed streams.")
 	g.P("class PushHandler {")
 	g.P("  late final StreamSubscription<Push> _subscription;")
-	if hasReverse {
-		g.P("  final Bridge _bridge = Bridge();")
-	}
 	g.P()
 
 	for _, msg := range pushMessages {
@@ -129,13 +120,6 @@ func generatePushHandler(g *protogen.GeneratedFile, basename string, pushMessage
 		fieldSuffix := strings.TrimPrefix(msgName, "Push")
 		controllerName := "_" + strings.ToLower(fieldSuffix[:1]) + fieldSuffix[1:] + "Controller"
 		g.P("  final _StreamBroadcast<", msgName, "> ", controllerName, " = _StreamBroadcast();")
-	}
-
-	// Handler fields for each ReverseService
-	for _, svc := range reverseServices {
-		handlerName := svc.GoName + "Handler"
-		fieldName := "_" + toCamelCase(svc.GoName) + "Handler"
-		g.P("  ", handlerName, "? ", fieldName, ";")
 	}
 
 	g.P()
@@ -152,27 +136,8 @@ func generatePushHandler(g *protogen.GeneratedFile, basename string, pushMessage
 		g.P("  Stream<", msgName, "> get ", streamName, " => ", controllerName, ".stream;")
 	}
 
-	// Setter for each ReverseService handler
-	for _, svc := range reverseServices {
-		handlerName := svc.GoName + "Handler"
-		fieldName := "_" + toCamelCase(svc.GoName) + "Handler"
-		setterName := "set" + svc.GoName + "Handler"
-		g.P()
-		g.P("  void ", setterName, "(", handlerName, " handler) {")
-		g.P("    ", fieldName, " = handler;")
-		g.P("  }")
-	}
-
 	g.P()
 	g.P("  void _dispatch(Push push) {")
-
-	if hasReverse {
-		g.P("    if (push.reversePort != Int64.ZERO) {")
-		g.P("      _dispatchReverse(push);")
-		g.P("      return;")
-		g.P("    }")
-	}
-
 	g.P("    switch (push.type) {")
 	for _, msg := range pushMessages {
 		msgName := msg.GoIdent.GoName
@@ -189,39 +154,6 @@ func generatePushHandler(g *protogen.GeneratedFile, basename string, pushMessage
 	g.P("    }")
 	g.P("  }")
 
-	if hasReverse {
-		g.P()
-		g.P("  void _dispatchReverse(Push push) {")
-		g.P("    Future<List<int>>? fut;")
-		g.P("    switch (push.type) {")
-		for _, svc := range reverseServices {
-			fieldName := "_" + toCamelCase(svc.GoName) + "Handler"
-			for _, method := range svc.Methods {
-				if method.Desc.IsStreamingClient() || method.Desc.IsStreamingServer() {
-					continue
-				}
-				fullPath := fmt.Sprintf("/%s/%s", svc.Desc.FullName(), method.Desc.Name())
-				inName := method.Input.GoIdent.GoName
-				outName := method.Output.GoIdent.GoName
-				methodName := toCamelCase(method.GoName)
-				g.P("      case '", fullPath, "':")
-				g.P("        if (", fieldName, " != null) {")
-				g.P("          final req = ", inName, ".fromBuffer(push.payload);")
-				g.P("          fut = ", fieldName, "!.", methodName, "(req)")
-				g.P("              .then((resp) => resp.writeToBuffer());")
-				g.P("        }")
-				g.P("        break;")
-				_ = outName
-			}
-		}
-		g.P("    }")
-		g.P("    if (fut == null) return;")
-		g.P("    fut.then((payload) {")
-		g.P("      _bridge.sendReverseResponse(push.reversePort, payload);")
-		g.P("    });")
-		g.P("  }")
-	}
-
 	g.P()
 	g.P("  void dispose() {")
 	g.P("    _subscription.cancel();")
@@ -234,34 +166,92 @@ func generatePushHandler(g *protogen.GeneratedFile, basename string, pushMessage
 	}
 	g.P("  }")
 	g.P("}")
-	if len(pushMessages) > 0 {
-		g.P()
-		g.P("class _StreamBroadcast<T> {")
-		g.P("  final _controller = StreamController<T>.broadcast();")
-		g.P("  Stream<T> get stream => _controller.stream;")
-		g.P("  void add(T value) => _controller.add(value);")
-		g.P("  void close() => _controller.close();")
-		g.P("}")
-	}
+	g.P()
+	g.P("class _StreamBroadcast<T> {")
+	g.P("  final _controller = StreamController<T>.broadcast();")
+	g.P("  Stream<T> get stream => _controller.stream;")
+	g.P("  void add(T value) => _controller.add(value);")
+	g.P("  void close() => _controller.close();")
+	g.P("}")
 }
 
-// generateReverseServiceHandler generates the abstract class Dart must implement.
+// generateReverseServiceHandler generates a self-contained abstract class.
+// The constructor subscribes to Bridge().push and handles its own paths,
+// so the implementor just needs to instantiate the subclass.
 func generateReverseServiceHandler(g *protogen.GeneratedFile, service *protogen.Service) {
 	handlerName := service.GoName + "Handler"
+	noopName := "_" + service.GoName + "NoOp"
+	globalVar := "_" + toCamelCase(service.GoName) + "Handler"
 
-	g.P("/// ", handlerName, " is the Dart-side handler for the Go->Dart->Go ", service.GoName, ".")
-	g.P("/// Implement this and register it via PushHandler.set", service.GoName, "Handler().")
-	g.P("abstract class ", handlerName, " {")
-	for _, method := range service.Methods {
-		if method.Desc.IsStreamingClient() || method.Desc.IsStreamingServer() {
-			continue
+	// collect unary methods only
+	var methods []*protogen.Method
+	for _, m := range service.Methods {
+		if !m.Desc.IsStreamingClient() && !m.Desc.IsStreamingServer() {
+			methods = append(methods, m)
 		}
-		inName := method.Input.GoIdent.GoName
-		outName := method.Output.GoIdent.GoName
-		methodName := toCamelCase(method.GoName)
-		g.P("  Future<", outName, "> ", methodName, "(", inName, " request);")
+	}
+
+	g.P("/// ", handlerName, " handles Go->Dart->Go calls for ", service.GoName, ".")
+	g.P("/// Extend this class and implement the abstract methods.")
+	g.P("/// Instantiating the subclass is all that is needed — it self-registers,")
+	g.P("/// automatically disposing the previous handler (including the default no-op).")
+	g.P("abstract class ", handlerName, " {")
+	g.P("  final Bridge _bridge = Bridge();")
+	g.P("  late final StreamSubscription<Push> _subscription;")
+	g.P()
+	g.P("  ", handlerName, "() {")
+	g.P("    ", globalVar, ".dispose(); // dispose previous (no-op or prior impl)")
+	g.P("    ", globalVar, " = this;")
+	g.P("    _subscription = _bridge.push.listen(_dispatch);")
+	g.P("  }")
+	g.P()
+
+	for _, m := range methods {
+		inName := m.Input.GoIdent.GoName
+		outName := m.Output.GoIdent.GoName
+		g.P("  Future<", outName, "> ", toCamelCase(m.GoName), "(", inName, " request);")
+	}
+
+	g.P()
+	g.P("  void dispose() => _subscription.cancel();")
+	g.P()
+	g.P("  void _dispatch(Push push) {")
+	g.P("    if (push.reversePort == Int64.ZERO) return;")
+	g.P("    Future<List<int>>? fut;")
+	g.P("    switch (push.type) {")
+	for _, m := range methods {
+		fullPath := fmt.Sprintf("/%s/%s", service.Desc.FullName(), m.Desc.Name())
+		inName := m.Input.GoIdent.GoName
+		g.P("      case '", fullPath, "':")
+		g.P("        fut = ", toCamelCase(m.GoName), "(", inName, ".fromBuffer(push.payload))")
+		g.P("            .then((r) => r.writeToBuffer());")
+		g.P("        break;")
+	}
+	g.P("    }")
+	g.P("    if (fut == null) return;")
+	g.P("    fut.then((payload) => _bridge.sendReverseResponse(push.reversePort, payload))")
+	g.P("        .catchError((_) => _bridge.sendReverseResponse(push.reversePort, []));")
+	g.P("  }")
+	g.P("}")
+	g.P()
+
+	// no-op — registered by default, replaced when a real handler is instantiated.
+	g.P("class ", noopName, " extends ", handlerName, " {")
+	g.P("  // no-op: skip the registration logic in the super constructor")
+	g.P("  ", noopName, "._() {")
+	g.P("    _subscription = _bridge.push.listen(_dispatch);")
+	g.P("  }")
+	for _, m := range methods {
+		outName := m.Output.GoIdent.GoName
+		inName := m.Input.GoIdent.GoName
+		g.P("  @override")
+		g.P("  Future<", outName, "> ", toCamelCase(m.GoName), "(", inName, " request) async => ", outName, "();")
 	}
 	g.P("}")
+	g.P()
+	g.P("// Global singleton — replaced when a real handler is instantiated.")
+	g.P("// ignore: prefer_final_fields")
+	g.P(handlerName, " ", globalVar, " = ", noopName, "._();")
 	g.P()
 }
 
