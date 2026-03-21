@@ -41,7 +41,7 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: "0"
         run: |
-          go build -C go -o ../dist/${{ matrix.asset_name }} ./cmd/flap
+          go build -C go -ldflags="-X main.Version=${{ github.ref_name }}" -o ../dist/${{ matrix.asset_name }} ./cmd/flap
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

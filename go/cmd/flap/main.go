@@ -25,7 +25,7 @@ type tool struct {
 }
 
 func main() {
-	fmt.Println("flap - Go x Flutter frontend template")
+	fmt.Printf("flap %s - Go x Flutter frontend template\n", Version)
 	fmt.Println()
 
 	// 1. dependency check
@@ -34,6 +34,17 @@ func main() {
 		os.Exit(1)
 	}
 	fmt.Printf("%s✓%s All dependencies found\n", colorGreen, colorReset)
+	fmt.Println()
+
+	// set version
+	if len(os.Args) > 1 {
+		v := os.Args[1]
+		if err := checkRemoteTag(v); err != nil {
+			fatalf("%v", err)
+		}
+		Version = v
+	}
+	fmt.Printf("Using version %s\n", Version)
 	fmt.Println()
 
 	// 2. interactive prompts

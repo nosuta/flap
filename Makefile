@@ -294,6 +294,12 @@ action: ## Test GitHub Action locally
 	act -s GITHUB_TOKEN="$(shell gh auth token)" --container-architecture linux/amd64
 .PHONY: action
 
+FLAP_VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null || echo "dev")
+
+flap: ## Install flap CLI
+	go install -C go -ldflags="-X main.Version=$(FLAP_VERSION)" ./cmd/flap
+.PHONY: flap
+
 help: ## Show this help
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(firstword $(MAKEFILE_LIST)) | \
 	awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

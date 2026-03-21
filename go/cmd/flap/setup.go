@@ -3,15 +3,33 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
+
+// checkRemoteTag verifies that the given tag exists on the remote template repo.
+func checkRemoteTag(tag string) error {
+	out, err := exec.Command("git", "ls-remote", "--tags", templateRepo, "refs/tags/"+tag).Output()
+	if err != nil {
+		return fmt.Errorf("failed to reach remote: %w", err)
+	}
+	if !strings.Contains(string(out), "refs/tags/"+tag) {
+		return fmt.Errorf("version %q not found in %s", tag, templateRepo)
+	}
+	return nil
+}
 
 func cloneTemplate(cfg config) error {
 	if _, err := os.Stat(cfg.dir); err == nil {
 		return fmt.Errorf("directory %q already exists", cfg.dir)
 	}
-	if err := task("Clone template", ".", "git", "clone", "--depth=1", templateRepo, cfg.dir); err != nil {
+	args := []string{"clone", "--depth=1"}
+	if Version != "dev" {
+		args = append(args, "--branch", Version)
+	}
+	args = append(args, templateRepo, cfg.dir)
+	if err := task("Clone template", ".", "git", args...); err != nil {
 		return err
 	}
 	// rename origin → upstream so users can add their own origin later
