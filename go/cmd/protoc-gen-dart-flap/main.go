@@ -184,9 +184,10 @@ func generatePushHandler(g *protogen.GeneratedFile, basename string, pushMessage
 // The constructor subscribes to Bridge().push and handles its own paths,
 // so the implementor just needs to instantiate the subclass.
 func generateReverseServiceHandler(g *protogen.GeneratedFile, service *protogen.Service) {
-	handlerName := service.GoName + "Handler"
-	noopName := "_" + service.GoName + "NoOp"
-	globalVar := "_" + toCamelCase(service.GoName) + "Handler"
+	baseName := strings.TrimSuffix(service.GoName, "Service")
+	handlerName := baseName + "Rpc"
+	noopName := "_" + baseName + "RpcNoOp"
+	globalVar := "_" + toCamelCase(baseName) + "Rpc"
 
 	// collect unary methods only
 	var methods []*protogen.Method
@@ -267,8 +268,8 @@ func generateReverseServiceHandler(g *protogen.GeneratedFile, service *protogen.
 
 // generateNormalServiceClient generates the Dart client for a normal (Dart->Go) service.
 func generateNormalServiceClient(g *protogen.GeneratedFile, service *protogen.Service) {
-	serviceName := service.GoName
-	clientName := serviceName + "Client"
+	baseName := strings.TrimSuffix(service.GoName, "Service")
+	clientName := baseName + "RpcClient"
 
 	g.P("class ", clientName, " {")
 	g.P("  final Transport _transport;")

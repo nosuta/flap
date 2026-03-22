@@ -167,7 +167,7 @@ func (n *nos) FetchNotes(ctx context.Context, topic string, since, until *int64,
 	}
 	slog.Debug("serialized sample event", "event", string(eventJSON))
 	shortCtx, shortCtxCancel := context.WithTimeout(ctx, time.Second*2)
-	resp, err := pb.ReverseNostrNip07SignEvent(shortCtx, &pb.Nip07SignEventRequest{
+	resp, err := pb.NostrReverseRPCNip07SignEvent(shortCtx, &pb.Nip07SignEventRequest{
 		Event: string(eventJSON),
 	})
 	shortCtxCancel()

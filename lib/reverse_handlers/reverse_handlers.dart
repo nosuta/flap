@@ -2,7 +2,7 @@ import 'package:flap/pb/nostr.pb.dart';
 import 'package:flap/pb/nostr.flap.dart';
 import 'package:flap/helpers/nip07.dart';
 
-class NostrReverse extends NostrReverseServiceHandler {
+class NostrReverseRpcImpl extends NostrReverseRpc {
   @override
   Future<Nip07SignEventResponse> nip07SignEvent(Nip07SignEventRequest req) async {
     String? signedEvent;

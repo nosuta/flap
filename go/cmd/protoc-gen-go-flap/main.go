@@ -134,7 +134,9 @@ func generateSharedFile(gen *protogen.Plugin, file *protogen.File, sharedEmitted
 // generateNormalService generates the server-side handler interface and router (Dart->Go).
 func generateNormalService(g *protogen.GeneratedFile, service *protogen.Service) {
 	serviceName := service.GoName
-	interfaceName := serviceName + "Handler"
+	baseName := strings.TrimSuffix(serviceName, "Service")
+	interfaceName := baseName + "RPCHandler"
+	handleFuncName := "Handle" + baseName + "RPC"
 
 	g.P("// ", interfaceName, " is the server interface for the ", serviceName, " service.")
 	g.P("type ", interfaceName, " interface {")
@@ -151,7 +153,7 @@ func generateNormalService(g *protogen.GeneratedFile, service *protogen.Service)
 	g.P("}")
 	g.P()
 
-	g.P("func Handle", serviceName, "(ctx context.Context, req *RpcRequest, ch chan<- *Response, handler ", interfaceName, ") bool {")
+	g.P("func ", handleFuncName, "(ctx context.Context, req *RpcRequest, ch chan<- *Response, handler ", interfaceName, ") bool {")
 	g.P("	switch req.Path {")
 	for _, method := range service.Methods {
 		if method.Desc.IsStreamingClient() {
@@ -197,7 +199,7 @@ func generateReverseService(g *protogen.GeneratedFile, service *protogen.Service
 			continue // streaming not supported for ReverseService
 		}
 		fullPath := fmt.Sprintf("/%s/%s", service.Desc.FullName(), method.Desc.Name())
-		funcName := "Reverse" + strings.TrimSuffix(serviceName, "ReverseService") + method.GoName
+		funcName := strings.TrimSuffix(serviceName, "ReverseService") + "ReverseRPC" + method.GoName
 		inName := method.Input.GoIdent.GoName
 		outName := method.Output.GoIdent.GoName
 

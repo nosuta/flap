@@ -4,9 +4,9 @@ package pb;
 // Go package name
 option go_package = "flap/pb";
 
-message GetProfile { string pubkey = 1; }
+message ProfileRequest { string pubkey = 1; }
 
-message GetNotes {
+message NotesRequest {
   string topic = 3;
   oneof ranges {
     TimeRange range = 1;
@@ -57,8 +57,8 @@ message Note {
 message Notes { repeated Note notes = 1; }
 
 service NostrService {
-  rpc FetchProfile(GetProfile) returns (Profile);
-  rpc FetchNotes(GetNotes) returns (stream Note);
+  rpc FetchProfile(ProfileRequest) returns (Profile);
+  rpc FetchNotes(NotesRequest) returns (stream Note);
 }
 // Example ReverseService: Go calls Dart to get device info.
 service NostrReverseService {

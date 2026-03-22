@@ -39,7 +39,7 @@ class _HomeState extends State<Home> {
   final _sliverStableListKey = GlobalKey();
   final _contextMenuController = ContextMenuController();
   final _focusNode = FocusNode();
-  final _nostrReverseHandler = NostrReverse();
+  final _nostrReverseRpc = NostrReverseRpcImpl();
   final _pushHandler = PushHandler();
 
   bool _loadingTop = false;
@@ -57,7 +57,7 @@ class _HomeState extends State<Home> {
   String? _preferredLanguage;
   String _connectResult = '';
 
-  String _topic = 'nostr';
+  final _topic = 'nostr';
 
   @override
   void initState() {
@@ -77,7 +77,7 @@ class _HomeState extends State<Home> {
     _scrollController.dispose();
     _contextMenuController.remove();
     _focusNode.dispose();
-    _nostrReverseHandler.dispose();
+    _nostrReverseRpc.dispose();
     super.dispose();
   }
 
@@ -179,14 +179,14 @@ class _HomeState extends State<Home> {
     setState(() {});
     final now = Int64((DateTime.now().millisecondsSinceEpoch * 0.001).toInt());
     _log.info('fetch new notes: since $_latest until $now');
-    final req = pbnostr.GetNotes(
-      // topic: topic,
+    final req = pbnostr.NotesRequest(
+      topic: _topic,
       range: pbnostr.TimeRange(since: _latest, until: now),
     );
 
     double offset = 0.0;
 
-    final client = NostrServiceClient(bridge);
+    final client = NostrRpcClient(bridge);
     final stream = client.fetchNotes(req);
     _topSubscription = stream.listen(
       (n) {
@@ -265,12 +265,12 @@ class _HomeState extends State<Home> {
         : _oldest;
 
     _log.info('fetch old notes: since $since until $_oldest');
-    pbnostr.GetNotes req = pbnostr.GetNotes(
+    final req = pbnostr.NotesRequest(
       topic: _topic,
       range: pbnostr.TimeRange(since: since, until: until),
     );
 
-    final client = NostrServiceClient(bridge);
+    final client = NostrRpcClient(bridge);
     final stream = client.fetchNotes(req);
     Map<String, pbnostr.Note> temp = {};
     _bottomSubscription = stream.listen(
@@ -310,7 +310,7 @@ class _HomeState extends State<Home> {
 
   Future<void> _testConnect() async {
     final bridge = context.read<Bridge>();
-    final client = EchoServiceClient(bridge);
+    final client = EchoRpcClient(bridge);
 
     setState(() {
       _connectResult = 'Calling Echo...';
@@ -556,7 +556,7 @@ class _HomeState extends State<Home> {
                     }
                   },
                   // title: topic,
-                  title: 'long-topic-test-too-long-to-display',
+                  title: _topic,
                 ),
               ),
               IconButton(

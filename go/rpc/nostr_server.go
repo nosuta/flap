@@ -10,17 +10,17 @@ import (
 
 type NostrServer struct{}
 
-func (s *NostrServer) FetchProfile(ctx context.Context, req *pb.GetProfile) (*pb.Profile, error) {
+func (s *NostrServer) FetchProfile(ctx context.Context, req *pb.ProfileRequest) (*pb.Profile, error) {
 	slog.Info("NostrServer.FetchProfile called", "pubkey", req.Pubkey)
 	return nostr.Nostr().GetProfiles(ctx, req.Pubkey)
 }
 
-func (s *NostrServer) FetchNotes(ctx context.Context, req *pb.GetNotes, ch chan<- *pb.Response) error {
+func (s *NostrServer) FetchNotes(ctx context.Context, req *pb.NotesRequest, ch chan<- *pb.Response) error {
 	slog.Info("NostrServer.FetchNotes called", "topic", req.Topic)
 
 	var since *int64 = nil
 	var until *int64 = nil
-	if r, ok := req.Ranges.(*pb.GetNotes_Range); ok {
+	if r, ok := req.Ranges.(*pb.NotesRequest_Range); ok {
 		since = &r.Range.Since
 		until = &r.Range.Until
 	}

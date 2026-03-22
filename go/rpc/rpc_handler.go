@@ -13,10 +13,10 @@ var (
 )
 
 func HandleRPCImpl(ctx context.Context, req *pb.RpcRequest, ch chan<- *pb.Response) {
-	if pb.HandleEchoService(ctx, req, ch, echoServer) {
+	if pb.HandleEchoRPC(ctx, req, ch, echoServer) {
 		return
 	}
-	if pb.HandleNostrService(ctx, req, ch, nostrServer) {
+	if pb.HandleNostrRPC(ctx, req, ch, nostrServer) {
 		return
 	}
 
