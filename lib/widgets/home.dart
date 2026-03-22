@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flap/pb/push.flap.dart';
 import 'package:flutter/rendering.dart';import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
@@ -21,6 +20,8 @@ import 'package:flap/widgets/scrollable_title.dart';
 import 'package:flap/pb/echo.flap.dart';
 import 'package:flap/pb/echo.pb.dart' as pbecho;
 import 'package:flap/pb/nostr.flap.dart';
+import 'package:flap/pb/push.flap.dart';
+import 'package:flap/reverse_handlers/reverse_handlers.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key, required this.title});
@@ -38,6 +39,8 @@ class _HomeState extends State<Home> {
   final _sliverStableListKey = GlobalKey();
   final _contextMenuController = ContextMenuController();
   final _focusNode = FocusNode();
+  final _nostrReverseRpc = NostrReverseRpcImpl();
+  final _pushHandler = PushHandler();
 
   bool _loadingTop = false;
   bool _pullingTop = false;
@@ -51,17 +54,16 @@ class _HomeState extends State<Home> {
   Int64 _oldest = Int64(-1);
   StreamSubscription<pbnostr.Note>? _topSubscription;
   StreamSubscription<pbnostr.Note>? _bottomSubscription;
-  PushHandler? _pushHandler;
   String? _preferredLanguage;
   String _connectResult = '';
 
-  String _topic = 'nostr';
+  final _topic = 'nostr';
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_listenScroll);
-    unawaited(_subscribePush());
+    _subscribePush();
     unawaited(_fetchOldNotes());
     unawaited(_getLanguage());
   }
@@ -70,11 +72,12 @@ class _HomeState extends State<Home> {
   void dispose() {
     _topSubscription?.cancel();
     _bottomSubscription?.cancel();
-    _pushHandler?.dispose();
+    _pushHandler.dispose();
     _titleScrollController.dispose();
     _scrollController.dispose();
     _contextMenuController.remove();
     _focusNode.dispose();
+    _nostrReverseRpc.dispose();
     super.dispose();
   }
 
@@ -176,14 +179,14 @@ class _HomeState extends State<Home> {
     setState(() {});
     final now = Int64((DateTime.now().millisecondsSinceEpoch * 0.001).toInt());
     _log.info('fetch new notes: since $_latest until $now');
-    final req = pbnostr.GetNotes(
-      // topic: topic,
+    final req = pbnostr.NotesRequest(
+      topic: _topic,
       range: pbnostr.TimeRange(since: _latest, until: now),
     );
 
     double offset = 0.0;
 
-    final client = NostrServiceClient(bridge);
+    final client = NostrRpcClient(bridge);
     final stream = client.fetchNotes(req);
     _topSubscription = stream.listen(
       (n) {
@@ -217,10 +220,8 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Future<void> _subscribePush() async {
-    final bridge = context.read<Bridge>();
-    _pushHandler = PushHandler(bridge.push);
-    _pushHandler!.nip05.listen((n) {
+  void _subscribePush() {
+    _pushHandler.nip05.listen((n) {
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
@@ -264,12 +265,12 @@ class _HomeState extends State<Home> {
         : _oldest;
 
     _log.info('fetch old notes: since $since until $_oldest');
-    pbnostr.GetNotes req = pbnostr.GetNotes(
+    final req = pbnostr.NotesRequest(
       topic: _topic,
       range: pbnostr.TimeRange(since: since, until: until),
     );
 
-    final client = NostrServiceClient(bridge);
+    final client = NostrRpcClient(bridge);
     final stream = client.fetchNotes(req);
     Map<String, pbnostr.Note> temp = {};
     _bottomSubscription = stream.listen(
@@ -309,7 +310,7 @@ class _HomeState extends State<Home> {
 
   Future<void> _testConnect() async {
     final bridge = context.read<Bridge>();
-    final client = EchoServiceClient(bridge);
+    final client = EchoRpcClient(bridge);
 
     setState(() {
       _connectResult = 'Calling Echo...';
@@ -555,7 +556,7 @@ class _HomeState extends State<Home> {
                     }
                   },
                   // title: topic,
-                  title: 'long-topic-test-too-long-to-display',
+                  title: _topic,
                 ),
               ),
               IconButton(

@@ -221,6 +221,19 @@ class Bridge extends ChangeNotifier {
     _pushController.sink.add(resp.push);
   }
 
+  /// Sends a ReverseResponse back to Go for a Go->Dart->Go ReverseService call.
+  /// [reversePort] must match [Push.reversePort] from the incoming push.
+  Future<void> sendReverseResponse(Int64 reversePort, List<int> payload) async {
+    await _waitReady();
+    final req = Request(
+      reverseResponse: ReverseResponse(reversePort: reversePort, payload: payload),
+    );
+    final resp = await rpc(req);
+    if (resp.hasError()) {
+      _log.severe('sendReverseResponse error: ${resp.error.message}');
+    }
+  }
+
   Pointer<BytesContainer> _bytesToBytesContainerPointer(Uint8List bytes) {
     final n = bytes.length;
     final bytesHeap = malloc<Uint8>(n);

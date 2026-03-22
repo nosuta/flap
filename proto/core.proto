@@ -38,6 +38,12 @@ message Init {
   string app_encryption_key = 5;
 }
 
+// ReverseResponse is sent by Dart to Go as a reply to a Go->Dart->Go ReverseService call.
+message ReverseResponse {
+  int64 reverse_port = 1;
+  bytes payload = 2;
+}
+
 //////////////////////////////
 //        Transport
 //////////////////////////////
@@ -49,6 +55,7 @@ message Request {
     Init init = 1;
     Cancel cancel = 4;
     RpcRequest rpc_request = 10;
+    ReverseResponse reverse_response = 11;
   }
 }
 
@@ -75,4 +82,7 @@ message RpcResponse { bytes payload = 1; }
 message Push {
   string type = 1;
   bytes payload = 2;
+  // reverse_port is set when Go requests a response from Dart (Go->Dart->Go ReverseService).
+  // 0 means fire-and-forget.
+  int64 reverse_port = 3;
 }

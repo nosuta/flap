@@ -81,6 +81,55 @@ Other options:
 make help
 ```
 
+## Defining RPC services in proto
+
+The code generators (`protoc-gen-go-flap` and `protoc-gen-dart-flap`) use service name suffixes to determine what code to emit.
+
+### `XxxService` — Dart → Go → Dart RPC
+
+A service whose name ends with `Service` (but not `ReverseService`) generates a standard RPC client on the Dart side and a handler interface on the Go side.
+
+```proto
+service NostrService {
+  rpc FetchNotes(NotesRequest) returns (stream Note);
+}
+```
+
+| Side | Generated |
+|------|-----------|
+| Dart | `NostrRpcClient` — call Go from Dart |
+| Go   | `NostrRPCHandler` interface + `HandleNostrRPC()` router |
+
+### `XxxReverseService` — Go → Dart → Go RPC
+
+A service whose name ends with `ReverseService` generates a reverse RPC: Go calls Dart and waits for a response.
+
+```proto
+service NostrReverseService {
+  rpc Nip07SignEvent(Nip07SignEventRequest) returns (Nip07SignEventResponse);
+}
+```
+
+| Side | Generated |
+|------|-----------|
+| Dart | `NostrReverseRpc` abstract class — extend and implement the methods |
+| Go   | `NostrReverseRPCNip07SignEvent(ctx, req)` caller function |
+
+Instantiating the Dart subclass is all that is needed — it self-registers and starts listening automatically.
+
+### Push messages — Go → Dart (fire-and-forget)
+
+Messages whose name starts with `Push` (e.g. `PushNip05`) are treated as one-way push notifications from Go to Dart. No response is sent back.
+
+```proto
+message PushNip05 { ... }
+```
+
+| Side | Generated |
+|------|-----------|
+| Dart | `PushHandler` — typed streams per message type (e.g. `.nip05`) |
+| Go   | `SendPushNip05(msg)` pusher function |
+
 ## Acknowledgements
 
 At the early stage of this project, it was heavily influenced by [flutter-openpgp](https://github.com/jerson/flutter-openpgp), which convinced me of the potential of the Go–Flutter bridge.

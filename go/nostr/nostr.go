@@ -11,7 +11,6 @@ import (
 	"flap/languages"
 	"flap/nostr/eventstore/sqlite"
 	"flap/pb"
-	"flap/pusher"
 
 	"fiatjaf.com/nostr"
 	"fiatjaf.com/nostr/eventstore"
@@ -132,7 +131,7 @@ func (n *nos) FetchSuperZap() {
 	// TODO:
 }
 
-func (n *nos) FetchNotes(ctx context.Context, topic string, since, until *int64, push pusher.Pusher) (*pb.Notes, error) {
+func (n *nos) FetchNotes(ctx context.Context, topic string, since, until *int64) (*pb.Notes, error) {
 	if r := recover(); r != nil {
 		slog.Error("RecentNote recovered from panic: %v", r)
 	}
@@ -142,26 +141,41 @@ func (n *nos) FetchNotes(ctx context.Context, topic string, since, until *int64,
 
 	// test fetch and push
 	if _, name, err := nip05.Fetch(ctx, "_@reishisaza.com"); err != nil {
-		// if resp, err := fetch.Fetch(ctx, "https://reishisaza.com/.well-known/nostr.json"); err != nil {
 		slog.Error("failed to test http", "err", err)
 	} else {
-		if err := push(pb.NewPushNip05(&pb.PushNip05{
+		if err := pb.SendPushNip05(&pb.PushNip05{
 			Id: fmt.Sprintf("fetched NIP-05 (%s)", name),
-		})); err != nil {
+		}); err != nil {
 			slog.Error("failed to test push", "err", err)
 		}
-
 	}
 
-	// if err := push(&pb.Push{
-	// 	Type: &pb.Push_Note{
-	// 		Note: &pb.Note{
-	// 			Id: "push push",
-	// 		},
-	// 	},
-	// }); err != nil {
-	// 	slog.Error("failed to test push", "err", err)
+	// test reverse rpc
+	// sampleEvent := nostr.Event{
+	// 	PubKey:    nostr.MustPubKeyFromHex("3c7d12a6c2f71fe9ca2527216f529a137bb0f2eb018b18f30003933b9532013e"),
+	// 	CreatedAt: nostr.Now(),
+	// 	Kind:      nostr.KindTextNote,
+	// 	Content:   "Hello world",
+	// 	Tags:      nostr.Tags{},
 	// }
+	// eventJSON, err := sampleEvent.MarshalJSON()
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to marshal sample event: %w", err)
+	// }
+	// slog.Debug("serialized sample event", "event", string(eventJSON))
+	// shortCtx, shortCtxCancel := context.WithTimeout(ctx, time.Second*2)
+	// resp, err := pb.NostrReverseRPCNip07SignEvent(shortCtx, &pb.Nip07SignEventRequest{
+	// 	Event: string(eventJSON),
+	// })
+	// shortCtxCancel()
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// var signedEvent nostr.Event
+	// if err := signedEvent.UnmarshalJSON([]byte(resp.SignedEvent)); err != nil {
+	// 	return nil, fmt.Errorf("failed to unmarshal signed event: %w", err)
+	// }
+	// slog.Debug("NIP07 reverse call", "signed event", signedEvent)
 
 	tagmap := nostr.TagMap{}
 	if len(topic) > 0 {
