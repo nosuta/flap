@@ -25,7 +25,7 @@ type tool struct {
 }
 
 func main() {
-	fmt.Printf("flap %s - Go x Flutter frontend template\n", Version)
+	fmt.Printf("flap %s\n", Version)
 	fmt.Println()
 
 	// 1. dependency check

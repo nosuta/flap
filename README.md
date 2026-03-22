@@ -1,11 +1,11 @@
 <p align="center">
 <img align="center" awidth="120" height="120" src="https://raw.githubusercontent.com/nosuta/flap/master/art/logo.png"><br>
-<b>Go x Flutter frontend template</b>
+<b>Go inside Flutter</b>
 </p>
 
 # Flap
 
-Build cross-platform Flutter apps with embedded Go.
+The template for Go compiled into your Flutter app.
 
 ## Supported platforms
 
