@@ -4,7 +4,6 @@ import (
 	"context"
 	"flap/nostr"
 	"flap/pb"
-	"flap/pusher"
 	"log/slog"
 )
 
@@ -26,9 +25,8 @@ func (s *NostrServer) FetchNotes(ctx context.Context, req *pb.NotesRequest, ch c
 	}
 
 	// Use the global RPC pusher (set during Init), or a no-op if not set.
-	push := pusher.Pusher(RPC().Push)
 
-	notes, err := nostr.Nostr().FetchNotes(ctx, req.Topic, since, until, push)
+	notes, err := nostr.Nostr().FetchNotes(ctx, req.Topic, since, until)
 	if err != nil {
 		return err
 	}

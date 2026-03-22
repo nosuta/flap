@@ -34,6 +34,7 @@ func RPC() *rpc {
 		reversePending: make(map[int64]chan []byte),
 	}
 	pb.SetReverseCallFn(instance.ReverseCall)
+	pb.SetPushFn(instance.Push)
 	return instance
 }
 

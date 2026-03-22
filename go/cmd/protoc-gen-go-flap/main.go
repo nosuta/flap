@@ -82,14 +82,20 @@ func collectPushMessages(file *protogen.File) []*protogen.Message {
 	return result
 }
 
-// emitPushHelpers generates NewPushXxx constructor helpers for each Push-prefixed message.
+// emitPushHelpers generates SendPushXxx functions for each Push-prefixed message.
 func emitPushHelpers(g *protogen.GeneratedFile, pushMessages []*protogen.Message) {
+	g.P(`import "fmt"`)
+	g.P()
 	for _, msg := range pushMessages {
 		msgName := msg.GoIdent.GoName
 		fullName := string(msg.Desc.FullName())
-		g.P("// New", msgName, " wraps ", msgName, " into a Push message.")
-		g.P("func New", msgName, "(msg *", msgName, ") *Push {")
-		g.P(`	return &Push{Type: "`, fullName, `", Payload: marshalHelper(msg)}`)
+		funcName := "Send" + msgName
+		g.P("// ", funcName, " sends a ", msgName, " message to Dart as a fire-and-forget push.")
+		g.P("func ", funcName, "(msg *", msgName, ") error {")
+		g.P(`	if pushFn == nil {`)
+		g.P(`		return fmt.Errorf("pushFn is not set")`)
+		g.P(`	}`)
+		g.P(`	return pushFn(&Push{Type: "`, fullName, `", Payload: marshalHelper(msg)})`)
 		g.P("}")
 		g.P()
 	}
@@ -127,6 +133,14 @@ func generateSharedFile(gen *protogen.Plugin, file *protogen.File, sharedEmitted
 	g.P("// SetReverseCallFn wires the ReverseService caller. Called once during init.")
 	g.P("func SetReverseCallFn(fn func(ctx context.Context, push *Push) ([]byte, error)) {")
 	g.P("	reverseCallFn = fn")
+	g.P("}")
+	g.P()
+	g.P("// pushFn is called by generated Push functions to send a fire-and-forget Push to Dart.")
+	g.P("var pushFn func(*Push) error")
+	g.P()
+	g.P("// SetPushFn wires the Push sender. Called once during init.")
+	g.P("func SetPushFn(fn func(*Push) error) {")
+	g.P("	pushFn = fn")
 	g.P("}")
 	g.P()
 }
