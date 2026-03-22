@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"sort"
 	"strings"
+	"time"
 
 	"flap/languages"
 	"flap/nostr/eventstore/sqlite"
@@ -165,9 +166,11 @@ func (n *nos) FetchNotes(ctx context.Context, topic string, since, until *int64,
 		return nil, fmt.Errorf("failed to marshal sample event: %w", err)
 	}
 	slog.Debug("serialized sample event", "event", string(eventJSON))
-	resp, err := pb.ReverseNostrNip07SignEvent(ctx, &pb.Nip07SignEventRequest{
+	shortCtx, shortCtxCancel := context.WithTimeout(ctx, time.Second*2)
+	resp, err := pb.ReverseNostrNip07SignEvent(shortCtx, &pb.Nip07SignEventRequest{
 		Event: string(eventJSON),
 	})
+	shortCtxCancel()
 	if err != nil {
 		return nil, err
 	}
