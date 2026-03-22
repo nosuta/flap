@@ -53,14 +53,14 @@ func generateFile(gen *protogen.Plugin, file *protogen.File) {
 		g.P("import 'dart:async';")
 		g.P()
 	}
-	needsBridge := len(normalServices) > 0 || len(reverseServices) > 0
+	needsBridge := len(normalServices) > 0 || len(reverseServices) > 0 || hasPush
 	if needsBridge {
 		g.P("import 'package:flap/bridge/bridge.dart';")
 	}
 	if len(normalServices) > 0 {
 		g.P("import 'package:flap/bridge/transport.dart';")
 	}
-	if len(reverseServices) > 0 {
+	if len(reverseServices) > 0 || hasPush {
 		g.P("import 'package:fixnum/fixnum.dart';")
 	}
 
@@ -111,6 +111,8 @@ func collectPushMessages(file *protogen.File) []*protogen.Message {
 
 func generatePushHandler(g *protogen.GeneratedFile, basename string, pushMessages []*protogen.Message) {
 	g.P("/// PushHandler dispatches incoming fire-and-forget [Push] messages to typed streams.")
+	g.P("/// Instantiating this class is all that is needed — it self-registers with Bridge(),")
+	g.P("/// automatically disposing the previous handler.")
 	g.P("class PushHandler {")
 	g.P("  late final StreamSubscription<Push> _subscription;")
 	g.P()
@@ -123,8 +125,11 @@ func generatePushHandler(g *protogen.GeneratedFile, basename string, pushMessage
 	}
 
 	g.P()
-	g.P("  PushHandler(Stream<Push> pushStream) {")
-	g.P("    _subscription = pushStream.listen(_dispatch);")
+	g.P("  PushHandler() {")
+	g.P("    final bridge = Bridge();")
+	g.P("    _pushHandler?.dispose();")
+	g.P("    _pushHandler = this;")
+	g.P("    _subscription = bridge.push.listen(_dispatch);")
 	g.P("  }")
 	g.P()
 
@@ -138,6 +143,7 @@ func generatePushHandler(g *protogen.GeneratedFile, basename string, pushMessage
 
 	g.P()
 	g.P("  void _dispatch(Push push) {")
+	g.P("    if (push.reversePort != Int64.ZERO) return;")
 	g.P("    switch (push.type) {")
 	for _, msg := range pushMessages {
 		msgName := msg.GoIdent.GoName
@@ -166,6 +172,9 @@ func generatePushHandler(g *protogen.GeneratedFile, basename string, pushMessage
 	}
 	g.P("  }")
 	g.P("}")
+	g.P()
+	g.P("// Module-level singleton — replaced when a new PushHandler is instantiated.")
+	g.P("PushHandler? _pushHandler;")
 	g.P()
 	g.P("class _StreamBroadcast<T> {")
 	g.P("  final _controller = StreamController<T>.broadcast();")

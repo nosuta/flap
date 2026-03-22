@@ -40,6 +40,7 @@ class _HomeState extends State<Home> {
   final _contextMenuController = ContextMenuController();
   final _focusNode = FocusNode();
   final _nostrReverseHandler = NostrReverse();
+  final _pushHandler = PushHandler();
 
   bool _loadingTop = false;
   bool _pullingTop = false;
@@ -53,7 +54,6 @@ class _HomeState extends State<Home> {
   Int64 _oldest = Int64(-1);
   StreamSubscription<pbnostr.Note>? _topSubscription;
   StreamSubscription<pbnostr.Note>? _bottomSubscription;
-  PushHandler? _pushHandler;
   String? _preferredLanguage;
   String _connectResult = '';
 
@@ -63,7 +63,7 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     _scrollController.addListener(_listenScroll);
-    unawaited(_subscribePush());
+    _subscribePush();
     unawaited(_fetchOldNotes());
     unawaited(_getLanguage());
   }
@@ -72,7 +72,7 @@ class _HomeState extends State<Home> {
   void dispose() {
     _topSubscription?.cancel();
     _bottomSubscription?.cancel();
-    _pushHandler?.dispose();
+    _pushHandler.dispose();
     _titleScrollController.dispose();
     _scrollController.dispose();
     _contextMenuController.remove();
@@ -220,10 +220,8 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Future<void> _subscribePush() async {
-    final bridge = context.read<Bridge>();
-    _pushHandler = PushHandler(bridge.push);
-    _pushHandler!.nip05.listen((n) {
+  void _subscribePush() {
+    _pushHandler.nip05.listen((n) {
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
