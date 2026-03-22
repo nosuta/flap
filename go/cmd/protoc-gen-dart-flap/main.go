@@ -111,8 +111,7 @@ func collectPushMessages(file *protogen.File) []*protogen.Message {
 
 func generatePushHandler(g *protogen.GeneratedFile, basename string, pushMessages []*protogen.Message) {
 	g.P("/// PushHandler dispatches incoming fire-and-forget [Push] messages to typed streams.")
-	g.P("/// Instantiating this class is all that is needed — it self-registers with Bridge(),")
-	g.P("/// automatically disposing the previous handler.")
+	g.P("/// Instantiate once and reuse — call dispose() when done.")
 	g.P("class PushHandler {")
 	g.P("  late final StreamSubscription<Push> _subscription;")
 	g.P()
@@ -126,10 +125,7 @@ func generatePushHandler(g *protogen.GeneratedFile, basename string, pushMessage
 
 	g.P()
 	g.P("  PushHandler() {")
-	g.P("    final bridge = Bridge();")
-	g.P("    _pushHandler?.dispose();")
-	g.P("    _pushHandler = this;")
-	g.P("    _subscription = bridge.push.listen(_dispatch);")
+	g.P("    _subscription = Bridge().push.listen(_dispatch);")
 	g.P("  }")
 	g.P()
 
@@ -172,9 +168,6 @@ func generatePushHandler(g *protogen.GeneratedFile, basename string, pushMessage
 	}
 	g.P("  }")
 	g.P("}")
-	g.P()
-	g.P("// Module-level singleton — replaced when a new PushHandler is instantiated.")
-	g.P("PushHandler? _pushHandler;")
 	g.P()
 	g.P("class _StreamBroadcast<T> {")
 	g.P("  final _controller = StreamController<T>.broadcast();")
