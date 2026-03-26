@@ -98,7 +98,7 @@ class Bridge extends ChangeNotifier {
     } else if (resp.hasPush()) {
       _pushController.sink.add(resp.push);
       return;
-    } 
+    }
     _log.shout('unknown fatal situation');
     _fatal = true;
   }
@@ -178,7 +178,10 @@ class Bridge extends ChangeNotifier {
   Future<void> sendReverseResponse(Int64 reversePort, List<int> payload) async {
     await _waitReady();
     final req = Request(
-      reverseResponse: ReverseResponse(reversePort: reversePort, payload: payload),
+      reverseResponse: ReverseResponse(
+        reversePort: reversePort,
+        payload: payload,
+      ),
     );
     final resp = await rpcUnsafe(req);
     if (resp.hasError()) {
@@ -221,6 +224,11 @@ class Bridge extends ChangeNotifier {
 
     controller.onCancel = () async {
       _log.info('rpc stream: on cancel $port');
+      // Close ports immediately to release MessageChannel resources,
+      // regardless of whether Go sends Done.
+      ch.port1.onmessage = null;
+      ch.port2.close();
+      ch.port1.close();
       final req = Request(cancel: Cancel(port: port));
       final resp = await rpc(req);
       if (resp.hasError()) {

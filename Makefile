@@ -74,7 +74,7 @@ prepare_go_wasm_test: web/sqlite3.js web/sqlite3.js web/sqlite3-opfs-async-proxy
 .PHONY: prepare_go_wasm_test
 
 web: update_web proto wasm_tinygo ## Build for Web browser
-	flutter build web --wasm --release
+	flutter build web --release
 .PHONY: web
 
 web_run: update_web proto wasm ## Run for Web browser
