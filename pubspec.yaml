@@ -5,7 +5,7 @@ publish_to: "none"
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.10.1
+  sdk: ^3.10.0
 workspace:
   - packages/native_internal
   - packages/web_internal
@@ -15,33 +15,25 @@ dependencies:
     path: packages/web_internal
   native_internal:
     path: packages/native_internal
-  hexpattern: ^13.1.0
-  statescope: ^3.0.0
-  super_sliver_list:
-    git:
-      url: https://github.com/1l0/super_sliver_list.git
-      ref: pre-correction
 
   flutter:
     sdk: flutter
   flutter_web_plugins:
     sdk: flutter
-  flutter_secure_storage: ^10.0.0-beta.5
-  cupertino_icons: ^1.0.8
+  flutter_secure_storage: ^10.0.0
+  cupertino_icons: ^1.0.9
   web: ^1.1.1
   # google_fonts: ^6.2.1
+  hexpattern: ^13.1.0
+  super_sliver_list: ^0.4.1
   protobuf: ^6.0.0
   logging: ^1.3.0
   cached_network_image: ^3.4.1
   fixnum: ^1.1.1
   timeago: ^3.7.1
-  flutter_slidable: ^4.0.0
-  stts: ^1.2.4
-  devicelocale: ^0.8.1
-  translator: ^1.0.3+1
-  skeletonizer: ^2.1.0+1
+  skeletonizer: ^2.1.3
   flutter_animate: ^4.5.2
-  ffi: ^2.1.4
+  ffi: ^2.2.0
   path_provider: ^2.1.5
 
 dev_dependencies:
@@ -61,8 +53,7 @@ flutter:
       fonts:
         - asset: fonts/NotoColorEmoji-Regular.ttf
   assets:
-    - packages/web_internal/worker.wasm
-    # - path: packages/web_internal/worker.wasm
-    # platforms: [web]
+    - path: packages/web_internal/worker.wasm
+      platforms: [web]
 
   uses-material-design: true

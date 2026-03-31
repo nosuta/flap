@@ -4,10 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 // import 'package:google_fonts/google_fonts.dart';
 import 'package:logging/logging.dart';
-import 'package:statescope/statescope.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 
-import 'package:flap/bridge/bridge.dart';
 import 'package:flap/widgets/home.dart';
 import 'package:flap/theme.dart';
 
@@ -52,15 +50,12 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const title = 'flap';
-    return StateScope(
-      creator: () => Bridge(),
-      child: MaterialApp(
-        title: title,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system,
-        home: const Home(title: title),
-      ),
+    return MaterialApp(
+      title: title,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
+      home: const Home(title: title),
     );
   }
 }

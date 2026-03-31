@@ -1,18 +1,13 @@
 import 'dart:async';
 
-import 'package:flutter/rendering.dart';import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
-import 'package:statescope/statescope.dart';
 import 'package:fixnum/fixnum.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:devicelocale/devicelocale.dart';
-import 'package:translator/translator.dart';
 import 'package:skeletonizer/skeletonizer.dart';
-import 'package:hexpattern/hexpattern.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
 
-import 'package:flap/bridge/bridge.dart';
 import 'package:flap/pb/nostr.pb.dart' as pbnostr;
 import 'package:flap/widgets/slivers/progress_indicator_header.dart';
 import 'package:flap/widgets/note.dart';
@@ -35,8 +30,6 @@ class _HomeState extends State<Home> {
   final _log = Logger('HomeState');
   final _scrollController = ScrollController();
   final _titleScrollController = ScrollController();
-  final _translator = GoogleTranslator();
-  final _sliverStableListKey = GlobalKey();
   final _contextMenuController = ContextMenuController();
   final _focusNode = FocusNode();
   final _nostrReverseRpc = NostrReverseRpcImpl();
@@ -54,10 +47,7 @@ class _HomeState extends State<Home> {
   Int64 _oldest = Int64(-1);
   StreamSubscription<pbnostr.Note>? _topSubscription;
   StreamSubscription<pbnostr.Note>? _bottomSubscription;
-  String? _preferredLanguage;
   String _connectResult = '';
-
-  final _topic = 'nostr';
 
   @override
   void initState() {
@@ -65,7 +55,6 @@ class _HomeState extends State<Home> {
     _scrollController.addListener(_listenScroll);
     _subscribePush();
     unawaited(_fetchOldNotes());
-    unawaited(_getLanguage());
   }
 
   @override
@@ -109,12 +98,6 @@ class _HomeState extends State<Home> {
     }
   }
 
-  Future<void> _getLanguage() async {
-    final languages = await Devicelocale.preferredLanguages;
-    _preferredLanguage = languages?.first.toString().substring(0, 2);
-    _log.fine('lang: $_preferredLanguage');
-  }
-
   Future<void> _onTapTitle() async {
     if (!context.mounted) {
       return;
@@ -142,28 +125,7 @@ class _HomeState extends State<Home> {
     }
   }
 
-  Future<void> _translateNote(String eventId) async {
-    if (_preferredLanguage == null || _notes[eventId] == null) {
-      return;
-    }
-    final n = _notes[eventId]!;
-    if (n.lang != _preferredLanguage!) {
-      try {
-        final translated = await _translator.translate(
-          n.content,
-          from: n.lang,
-          to: _preferredLanguage!,
-        );
-        n.translated = true;
-        n.translatedContent = translated.text;
-      } catch (e) {
-        _log.fine('translate error: $e');
-      }
-    }
-  }
-
   Future<void> _fetchNewNotes() async {
-    final bridge = context.read<Bridge>();
     if (_loadingTop) {
       _pullingTop = false;
       setState(() {});
@@ -180,14 +142,12 @@ class _HomeState extends State<Home> {
     final now = Int64((DateTime.now().millisecondsSinceEpoch * 0.001).toInt());
     _log.info('fetch new notes: since $_latest until $now');
     final req = pbnostr.NotesRequest(
-      topic: _topic,
       range: pbnostr.TimeRange(since: _latest, until: now),
     );
 
     double offset = 0.0;
 
-    final client = NostrRpcClient(bridge);
-    final stream = client.fetchNotes(req);
+    final stream = NostrRpcClient().fetchNotes(req);
     _topSubscription = stream.listen(
       (n) {
         if (n.id.isEmpty || n.pubkey.isEmpty || n.createdAt.isZero) {
@@ -205,10 +165,6 @@ class _HomeState extends State<Home> {
         _loadingTop = false;
         if (offset > 0 && _scrollController.offset > 0) {
           _guideTop = true;
-          final render =
-              _sliverStableListKey.currentContext?.findRenderObject()
-                  as RenderSuperSliverList?;
-          render?.correctScrollOffset(offset);
         }
         setState(() {});
       },
@@ -222,7 +178,7 @@ class _HomeState extends State<Home> {
 
   void _subscribePush() {
     _pushHandler.nip05.listen((n) {
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('push test: ${n.id}')));
@@ -234,7 +190,6 @@ class _HomeState extends State<Home> {
     if (_loadingBottom) {
       return;
     }
-    final bridge = context.read<Bridge>();
 
     _log.info('fetch old notes');
     if (_bottomSubscription != null) {
@@ -266,12 +221,10 @@ class _HomeState extends State<Home> {
 
     _log.info('fetch old notes: since $since until $_oldest');
     final req = pbnostr.NotesRequest(
-      topic: _topic,
       range: pbnostr.TimeRange(since: since, until: until),
     );
 
-    final client = NostrRpcClient(bridge);
-    final stream = client.fetchNotes(req);
+    final stream = NostrRpcClient().fetchNotes(req);
     Map<String, pbnostr.Note> temp = {};
     _bottomSubscription = stream.listen(
       (n) {
@@ -298,19 +251,8 @@ class _HomeState extends State<Home> {
     );
   }
 
-  double _calculateTextHeight(String text, double maxWidth, TextStyle style) {
-    final textPainter = TextPainter(
-      text: TextSpan(text: text, style: style),
-      maxLines: null,
-      textDirection: TextDirection.ltr,
-    )..layout(maxWidth: maxWidth);
-
-    return textPainter.size.height;
-  }
-
   Future<void> _testConnect() async {
-    final bridge = context.read<Bridge>();
-    final client = EchoRpcClient(bridge);
+    final client = EchoRpcClient();
 
     setState(() {
       _connectResult = 'Calling Echo...';
@@ -352,9 +294,6 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    final bridge = context.watch<Bridge>();
-    final theme = Theme.of(context);
-
     return Scaffold(
       body: KeyboardListener(
         focusNode: _focusNode,
@@ -388,126 +327,61 @@ class _HomeState extends State<Home> {
                       guide: _guideTop,
                     ),
                   ),
-                SlidableAutoCloseBehavior(
-                  child: SuperSliverList.builder(
-                    key: _sliverStableListKey,
-                    itemBuilder: (BuildContext context, int idx) {
-                      if (idx == _notes.length) {
-                        return SizedBox(
-                          height: 500,
-                          child: Skeletonizer(
-                            child: ListView.builder(
-                              itemBuilder: (context, idx) {
-                                return Padding(
-                                  padding: EdgeInsets.only(
-                                    top: idx == 0 ? 15 : 0,
-                                  ),
-                                  child: Note(
-                                    nevent:
-                                        'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
-                                    pubkey:
-                                        'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
-                                    lang: 'en',
-                                    npub:
-                                        'npub1lllllllllllllllllllllllllllllllllllllllllllllllllllsq7lrjw',
-                                    subject: '',
-                                    content: 'dummy',
-                                    createdAt: Int64(0),
-                                    name: null,
-                                    picture: '',
-                                  ),
-                                );
-                              },
-                              itemCount: 8,
-                            ),
-                          ),
-                        );
-                      }
-                      final n = _notes.entries.elementAt(idx);
-
-                      return InkWell(
-                        onTap: () {
-                          if (_contextMenuController.isShown) {
-                            _contextMenuController.remove();
-                            return;
-                          }
-                          // TODO:
-                        },
-                        onSecondaryTapDown: (details) {
-                          _contextMenuController.show(
-                            context: context,
-                            contextMenuBuilder: (context) {
-                              return AdaptiveTextSelectionToolbar.buttonItems(
-                                anchors: TextSelectionToolbarAnchors(
-                                  primaryAnchor: details.globalPosition,
+                SuperSliverList.builder(
+                  itemBuilder: (BuildContext context, int idx) {
+                    if (idx == _notes.length) {
+                      return SizedBox(
+                        height: 500,
+                        child: Skeletonizer(
+                          child: ListView.builder(
+                            itemBuilder: (context, idx) {
+                              return Padding(
+                                padding: EdgeInsets.only(
+                                  top: idx == 0 ? 15 : 0,
                                 ),
-                                buttonItems: [
-                                  ContextMenuButtonItem(
-                                    onPressed: () {
-                                      _contextMenuController
-                                          .remove(); // Dismiss the menu
-                                    },
-                                    label: 'Option 1',
-                                  ),
-                                  ContextMenuButtonItem(
-                                    onPressed: () {
-                                      _contextMenuController
-                                          .remove(); // Dismiss the menu
-                                    },
-                                    label: 'Option 2',
-                                  ),
-                                ],
+                                child: Note(
+                                  nevent:
+                                      'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+                                  pubkey:
+                                      'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+                                  lang: 'en',
+                                  npub:
+                                      'npub1lllllllllllllllllllllllllllllllllllllllllllllllllllsq7lrjw',
+                                  subject: '',
+                                  content: 'dummy dummy dummy dummy',
+                                  createdAt: Int64(0),
+                                  name: null,
+                                  picture: '',
+                                ),
                               );
                             },
-                          );
-                        },
-                        onLongPress: () {
-                          showModalBottomSheet(
-                            context: context,
-                            builder: (context) {
-                              return Placeholder();
-                            },
-                          );
-                        },
-                        child: Slidable(
-                          key: ObjectKey(n.value.id),
-                          endActionPane: ActionPane(
-                            extentRatio: 0.25,
-                            motion: ScrollMotion(),
-                            // A pane can dismiss the Slidable.s
-                            dismissible: DismissiblePane(onDismissed: () {}),
-                            children: [
-                              SlidableAction(
-                                // An action can be bigger than the others.
-                                onPressed: (ctx) {},
-                                backgroundColor: Color.fromARGB(255, 200, 0, 0),
-                                foregroundColor: Colors.white,
-                                icon: Icons.report,
-                                label: 'Report User',
-                              ),
-                            ],
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.only(top: idx == 0 ? 15 : 0),
-                            child: Note(
-                              nevent: n.value.nevent,
-                              pubkey: n.value.pubkey,
-                              lang: n.value.lang,
-                              npub: n.value.npub,
-                              subject: n.value.subject,
-                              content: n.value.content,
-                              createdAt: n.value.createdAt,
-                              name: null,
-                              picture: n.value.profile.picture.isEmpty
-                                  ? null
-                                  : n.value.profile.picture,
-                            ),
+                            itemCount: 3,
                           ),
                         ),
                       );
-                    },
-                    itemCount: _notes.length + 1,
-                  ),
+                    }
+                    final n = _notes.entries.elementAt(idx);
+
+                    return InkWell(
+                      child: Padding(
+                        padding: EdgeInsets.only(top: idx == 0 ? 15 : 0),
+                        child: Note(
+                          nevent: n.value.nevent,
+                          pubkey: n.value.pubkey,
+                          lang: n.value.lang,
+                          npub: n.value.npub,
+                          subject: n.value.subject,
+                          content: n.value.content,
+                          createdAt: n.value.createdAt,
+                          name: null,
+                          picture: n.value.profile.picture.isEmpty
+                              ? null
+                              : n.value.profile.picture,
+                        ),
+                      ),
+                    );
+                  },
+                  itemCount: _notes.length + 1,
                 ),
               ],
             ),
@@ -522,25 +396,6 @@ class _HomeState extends State<Home> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Builder(
-                builder: (context) {
-                  return IconButton(
-                    onPressed: () {
-                      Scaffold.of(context).openDrawer();
-                    },
-                    icon: SizedBox(
-                      width: 40,
-                      child: HexPattern(
-                        hexKey:
-                            'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
-                        height: 15,
-                        start: theme.colorScheme.onSurface,
-                        end: theme.colorScheme.onSurface,
-                      ),
-                    ),
-                  );
-                },
-              ),
               IconButton(
                 onPressed: _testConnect,
                 icon: Padding(
@@ -551,51 +406,26 @@ class _HomeState extends State<Home> {
               Expanded(
                 child: ScrollableTitle(
                   onTap: () {
-                    if (bridge.ready) {
-                      _onTapTitle();
-                    }
+                    _onTapTitle();
                   },
                   // title: topic,
-                  title: _topic,
+                  title: 'Nostr feed',
                 ),
               ),
               IconButton(
-                onPressed: bridge.ready
-                    ? () async {
-                        await _fetchNewNotes();
-                      }
-                    : null,
+                onPressed: () async {
+                  await _fetchNewNotes();
+                },
                 icon: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10.0),
                   child: Icon(Icons.replay_outlined),
                 ),
               ),
-              Builder(
-                builder: (context) {
-                  return IconButton(
-                    onPressed: () {
-                      Scaffold.of(context).openEndDrawer();
-                    },
-                    icon: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                      child: Icon(Icons.tag),
-                    ),
-                  );
-                },
-              ),
             ],
           ),
         ),
       ),
-      // TODO: drawer
-      // TODO: endDrawer
     );
   }
 }
 
-extension on Map<String, pbnostr.Note> {
-  Map<String, pbnostr.Note> hasKeyPrefix(String prefix) {
-    final matches = entries.where((ent) => ent.key.startsWith(prefix));
-    return Map.fromEntries(matches);
-  }
-}

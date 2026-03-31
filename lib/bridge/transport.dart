@@ -5,8 +5,8 @@ import 'package:flap/bridge/bridge.dart';
 import 'package:flap/pb/core.pb.dart' as pb;
 
 class Transport {
-  final Bridge bridge;
-  Transport(this.bridge);
+  final Bridge _bridge;
+  Transport(): _bridge = Bridge();
 
   Future<O> unary<I extends Object, O extends Object>(
     String path,
@@ -18,7 +18,7 @@ class Transport {
       rpcRequest: pb.RpcRequest(path: path, payload: payload),
     );
 
-    final resp = await bridge.rpc(req);
+    final resp = await _bridge.rpc(req);
     if (resp.hasError()) {
       throw Exception('[${resp.error.code}] ${resp.error.message}');
     }
@@ -41,7 +41,7 @@ class Transport {
       rpcRequest: pb.RpcRequest(path: path, payload: payload),
     );
 
-    final respStream = await bridge.rpcStream(req);
+    final respStream = await _bridge.rpcStream(req);
     await for (final resp in respStream) {
       if (resp.hasError()) {
         throw Exception('[${resp.error.code}] ${resp.error.message}');

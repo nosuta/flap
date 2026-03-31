@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:statescope/statescope.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-
-import 'package:flap/bridge/bridge.dart';
 
 class ProgressIndicatorHeader extends SliverPersistentHeaderDelegate {
   const ProgressIndicatorHeader({
@@ -27,12 +24,11 @@ class ProgressIndicatorHeader extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
   ) {
-    final bridge = context.watch<Bridge>();
     final scheme = Theme.of(context).colorScheme;
     return SizedBox(
       height: 3,
       child: loading
-          ? LinearProgressIndicator(color: bridge.ready ? null : scheme.error)
+          ? LinearProgressIndicator()
           : pulling
           ? LinearProgressIndicator(color: scheme.shadow)
           : guide

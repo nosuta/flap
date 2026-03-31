@@ -14,7 +14,6 @@ import (
 
 	"fiatjaf.com/nostr"
 	"fiatjaf.com/nostr/eventstore"
-	"fiatjaf.com/nostr/nip05"
 	"fiatjaf.com/nostr/nip19"
 	"fiatjaf.com/nostr/sdk"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
@@ -139,18 +138,20 @@ func (n *nos) FetchNotes(ctx context.Context, topic string, since, until *int64)
 		return nil, err
 	}
 
-	// test fetch and push
-	if _, name, err := nip05.Fetch(ctx, "_@reishisaza.com"); err != nil {
-		slog.Error("failed to test http", "err", err)
-	} else {
-		if err := pb.SendPushNip05(&pb.PushNip05{
-			Id: fmt.Sprintf("fetched NIP-05 (%s)", name),
-		}); err != nil {
-			slog.Error("failed to test push", "err", err)
-		}
-	}
+	// push example
 
-	// test reverse rpc
+	// if _, name, err := nip05.Fetch(ctx, "_@reishisaza.com"); err != nil {
+	// 	slog.Error("failed to test http", "err", err)
+	// } else {
+	// 	if err := pb.SendPushNip05(&pb.PushNip05{
+	// 		Id: fmt.Sprintf("fetched NIP-05 (%s)", name),
+	// 	}); err != nil {
+	// 		slog.Error("failed to test push", "err", err)
+	// 	}
+	// }
+
+	// reverse rpc example
+
 	// sampleEvent := nostr.Event{
 	// 	PubKey:    nostr.MustPubKeyFromHex("3c7d12a6c2f71fe9ca2527216f529a137bb0f2eb018b18f30003933b9532013e"),
 	// 	CreatedAt: nostr.Now(),
@@ -187,7 +188,7 @@ func (n *nos) FetchNotes(ctx context.Context, topic string, since, until *int64)
 		Until: (nostr.Timestamp)(*until),
 		Kinds: []nostr.Kind{nostr.KindTextNote},
 		Tags:  tagmap,
-		Limit: 500,
+		Limit: 20,
 	}, nostr.SubscriptionOptions{})
 
 	notes := &pb.Notes{}
@@ -239,12 +240,6 @@ func (n *nos) FetchNotes(ctx context.Context, topic string, since, until *int64)
 			slog.Info("found", "subject", subject)
 		}
 
-		// TODO: detect after parsing the content
-		// lang := "en"
-		// l, ok := langDetector.DetectLanguageOf(evt.Content)
-		// if ok {
-		// 	lang = strings.ToLower(l.IsoCode639_1().String())
-		// }
 		lang := languages.DetectLanguage(evt.Content)
 
 		notes.Notes = append(notes.Notes, &pb.Note{
@@ -259,18 +254,6 @@ func (n *nos) FetchNotes(ctx context.Context, topic string, since, until *int64)
 			Relays:    []string{relay},
 		})
 	}
-
-	// if len(notes.Notes) > 20 {
-	// 	notes.Notes = notes.Notes[:20]
-	// }
-
-	// topicKeys := make([]string, 0, len(topics))
-	// for key := range topics {
-	// 	topicKeys = append(topicKeys, key)
-	// }
-	// sort.SliceStable(topicKeys, func(i, j int) bool {
-	// 	return topics[topicKeys[i]] > topics[topicKeys[j]]
-	// })
 
 	sort.SliceStable(notes.Notes, func(i, j int) bool {
 		return notes.Notes[i].CreatedAt > notes.Notes[j].CreatedAt

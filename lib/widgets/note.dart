@@ -113,14 +113,7 @@ class Note extends StatelessWidget {
                                       _shortPubkey,
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        color: theme.colorScheme.onSurface,
-                                      ),
-                                    ),
-                                    Text(
-                                      '',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: theme.colorScheme.onSurface,
+                                        color: theme.colorScheme.onSurfaceVariant,
                                       ),
                                     ),
                                   ],
@@ -129,10 +122,10 @@ class Note extends StatelessWidget {
                         // if (profile != null) Text(profile!.dnsId),
                         SizedBox(width: 8),
                         Text(
-                          timeago.format(_createdAtDate),
+                          timeago.format(_createdAtDate, locale: 'en_short'),
                           style: TextStyle(
                             fontWeight: FontWeight.normal,
-                            color: theme.colorScheme.onSurface,
+                            color: theme.colorScheme.onSurfaceVariant,
                             fontSize: 10,
                           ),
                           maxLines: 1,
@@ -144,7 +137,7 @@ class Note extends StatelessWidget {
                           '($lang)',
                           style: TextStyle(
                             fontWeight: FontWeight.normal,
-                            color: theme.colorScheme.onSurface,
+                            color: theme.colorScheme.onSurfaceVariant,
                             fontSize: 10,
                           ),
                           maxLines: 1,

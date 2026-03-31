@@ -117,10 +117,10 @@ packages:
     dependency: "direct main"
     description:
       name: cupertino_icons
-      sha256: ba631d1c7f7bef6b729a622b7b752645a2d076dba9976925b8f25725a30e1ee6
+      sha256: "41e005c33bd814be4d3096aff55b1908d419fde52ca656c8c47719ec745873cd"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.8"
+    version: "1.0.9"
   dart_style:
     dependency: transitive
     description:
@@ -129,14 +129,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.3"
-  devicelocale:
-    dependency: "direct main"
-    description:
-      name: devicelocale
-      sha256: "6ce29378a94d87ba99041a24f8fedfc588838227b905ef0aa471b810690c1d7d"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.8.2"
   fake_async:
     dependency: transitive
     description:
@@ -149,10 +141,10 @@ packages:
     dependency: "direct main"
     description:
       name: ffi
-      sha256: d07d37192dbf97461359c1518788f203b0c9102cfd2c35a716b823741219542c
+      sha256: "6d7fd89431262d8f3125e81b50d3847a091d846eafcd4fdb88dd06f36d705a45"
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.5"
+    version: "2.2.0"
   ffigen:
     dependency: "direct dev"
     description:
@@ -262,14 +254,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.1.3"
-  flutter_slidable:
-    dependency: "direct main"
-    description:
-      name: flutter_slidable
-      sha256: ea369262929d3cc6ebf9d8a00c196127966f117fe433a5e5cb47fb08008ca203
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.0.3"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -364,10 +348,10 @@ packages:
     dependency: transitive
     description:
       name: matcher
-      sha256: "12956d0ad8390bbcc63ca2e1469c0619946ccb52809807067a7020d57e647aa6"
+      sha256: dc0b7dc7651697ea4ff3e69ef44b0407ea32c487a39fff6a4004fa585e901861
       url: "https://pub.dev"
     source: hosted
-    version: "0.12.18"
+    version: "0.12.19"
   material_color_utilities:
     dependency: transitive
     description:
@@ -508,10 +492,10 @@ packages:
     dependency: "direct main"
     description:
       name: skeletonizer
-      sha256: "83157d8e2e41f0252079cfec496281c16e4c63660052dab8d4cd72a206bb7109"
+      sha256: "9f38f9b47ec3cf2235a6a4f154a88a95432bc55ba98b3e2eb6ced5c1974bc122"
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.2"
+    version: "2.1.3"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -573,14 +557,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.12.1"
-  statescope:
-    dependency: "direct main"
-    description:
-      name: statescope
-      sha256: "43e417b3c9372cd740d57f15b4b7613a9fc993c6a4826d7b8eb27f4ed76694bf"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.0"
   stream_channel:
     dependency: transitive
     description:
@@ -597,38 +573,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.1"
-  stts:
-    dependency: "direct main"
-    description:
-      name: stts
-      sha256: "166ca37d241652cdefb9c31e18a7be93ff4eb847382ae32c5563e07bf44bf1d8"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.2.6"
-  stts_platform_interface:
-    dependency: transitive
-    description:
-      name: stts_platform_interface
-      sha256: "6b82268d59d608e9b5accdadf0e7ccaea7928e8fce68ca393111fa7193d1bf10"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.2.0"
-  stts_web:
-    dependency: transitive
-    description:
-      name: stts_web
-      sha256: "62625c3b4d86076820d687dc468845a0f54c7dd4ead155b58f1e5864488c7f1c"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.1.0"
   super_sliver_list:
     dependency: "direct main"
     description:
-      path: "."
-      ref: pre-correction
-      resolved-ref: "9c9e8a972a9a24a765b9a0554f7e36da3449924d"
-      url: "https://github.com/1l0/super_sliver_list.git"
-    source: git
+      name: super_sliver_list
+      sha256: b1e1e64d08ce40e459b9bb5d9f8e361617c26b8c9f3bb967760b0f436b6e3f56
+      url: "https://pub.dev"
+    source: hosted
     version: "0.4.1"
   synchronized:
     dependency: transitive
@@ -650,10 +601,10 @@ packages:
     dependency: transitive
     description:
       name: test_api
-      sha256: "93167629bfc610f71560ab9312acdda4959de4df6fac7492c89ff0d3886f6636"
+      sha256: "8161c84903fd860b26bfdefb7963b3f0b68fee7adea0f59ef805ecca346f0c7a"
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.9"
+    version: "0.7.10"
   timeago:
     dependency: "direct main"
     description:
@@ -662,14 +613,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.7.1"
-  translator:
-    dependency: "direct main"
-    description:
-      name: translator
-      sha256: fb28ada8b29931f5142907bac62dda375b14a60a57ec72ed37b78e3e97a7047b
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.4+1"
   typed_data:
     dependency: transitive
     description:
@@ -751,5 +694,5 @@ packages:
     source: hosted
     version: "2.2.3"
 sdks:
-  dart: ">=3.10.1 <4.0.0"
+  dart: ">=3.10.0 <4.0.0"
   flutter: ">=3.35.0"

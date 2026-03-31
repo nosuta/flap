@@ -274,7 +274,7 @@ func generateNormalServiceClient(g *protogen.GeneratedFile, service *protogen.Se
 	g.P("class ", clientName, " {")
 	g.P("  final Transport _transport;")
 	g.P()
-	g.P("  ", clientName, "(Bridge bridge) : _transport = Transport(bridge);")
+	g.P("  ", clientName, "() : _transport = Transport();")
 	g.P()
 
 	for _, method := range service.Methods {
