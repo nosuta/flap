@@ -53,7 +53,7 @@ func generateFile(gen *protogen.Plugin, file *protogen.File) {
 		g.P("import 'dart:async';")
 		g.P()
 	}
-	needsBridge := len(normalServices) > 0 || len(reverseServices) > 0 || hasPush
+	needsBridge := len(reverseServices) > 0 || hasPush
 	if needsBridge {
 		g.P("import 'package:flap/bridge/bridge.dart';")
 	}
