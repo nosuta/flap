@@ -25,6 +25,11 @@ type tool struct {
 }
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "--version" {
+		fmt.Printf("%s\n", Version)
+		return
+	}
+
 	fmt.Printf("flap %s\n", Version)
 	fmt.Println()
 
