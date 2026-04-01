@@ -16,7 +16,11 @@ The template for Go compiled into your Flutter app.
 
 ## Getting Started
 
-Install the CLI from [GitHub Releases](https://github.com/nosuta/flap/releases/latest).
+Install the CLI:
+
+```sh
+brew install nosuta/flap/flap
+```
 
 Create a new project:
 

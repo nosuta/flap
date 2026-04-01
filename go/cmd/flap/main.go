@@ -30,7 +30,7 @@ func main() {
 		return
 	}
 
-	fmt.Printf("flap %s\n", Version)
+	fmt.Println("flap [<version>]")
 	fmt.Println()
 
 	// 1. dependency check
