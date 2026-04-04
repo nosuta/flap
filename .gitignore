@@ -71,10 +71,4 @@ go/build
 *.a
 /exported.h
 *.g.dart
-TODO.md
 
-# delete these before the flap release, these should be commited
-/macos
-/android
-/ios
-/web
