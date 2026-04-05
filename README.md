@@ -82,8 +82,10 @@ Run on different platforms:
 ```sh
 # Web
 make web_run
+```
 
 See all available commands:
+
 ```sh
 make help
 ```
