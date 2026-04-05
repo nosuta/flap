@@ -1,6 +1,6 @@
 <p align="center">
 <img align="center" height="120" src="https://raw.githubusercontent.com/nosuta/flap/master/art/logo.png"><br>
-<b>Go inside Flutter</b>
+<b>Run Go inside Flutter</b>
 </p>
 
 # Flap
