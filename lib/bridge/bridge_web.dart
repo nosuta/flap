@@ -53,6 +53,28 @@ class Bridge extends ChangeNotifier {
     return _port++;
   }
 
+  /// Copies [bytes] into a fresh JS-owned ArrayBuffer so it can be transferred
+  /// (zero-copy ownership transfer) to the Worker via postMessage.
+  ///
+  /// Using [Uint8List.toJS] on a Dart-instantiated list returns a JSUint8Array
+  /// whose backing ArrayBuffer is managed by the Dart/Flutter runtime.
+  /// Transferring that buffer hands ownership to the Worker but the Dart GC
+  /// is unaware of the transfer, which can leave the buffer retained.
+  /// By allocating a new [JSArrayBuffer] explicitly and copying the bytes into
+  /// it we get a purely JS-owned buffer that the browser can freely reclaim
+  /// once the Worker consumes it.
+  (JSUint8Array view, JSArrayBuffer ab) _toTransferableBuffer(List<int> bytes) {
+    final ab = JSArrayBuffer(bytes.length);
+    final view = JSUint8Array(ab);
+    // Uint8Array.set(src) bulk-copies src into view in one JS call.
+    // bytes.toJS on a Dart-instantiated Uint8List is a cast on JS targets,
+    // but the data is copied into the new JS-owned `ab` here, so `ab` is
+    // fully independent of Dart's heap and safe to transfer.
+    final src = (bytes is Uint8List ? bytes : Uint8List.fromList(bytes)).toJS;
+    view.callMethod('set'.toJS, src);
+    return (view, ab);
+  }
+
   void _onGlobalMessage(web.MessageEvent message) {
     _log.info('_onGlobalMessage: ${message.data}');
     if (message.isUndefinedOrNull || message.data.isUndefinedOrNull) {
@@ -154,14 +176,9 @@ class Bridge extends ChangeNotifier {
       ch.port1.close();
     }).toJS;
 
-    final buf = req.writeToBuffer().toJS;
-    final m = <JSObject>{ch.port2, buf}.jsify() as JSArray;
-    final t =
-        <JSObject>{
-              ch.port2,
-              buf.getProperty('buffer'.toJS) as JSArrayBuffer,
-            }.jsify()
-            as JSArray;
+    final (view, ab) = _toTransferableBuffer(req.writeToBuffer());
+    final m = <JSObject>{ch.port2, view}.jsify() as JSArray;
+    final t = <JSObject>{ch.port2, ab}.jsify() as JSArray;
     _log.info('rpc post message');
     _worker.postMessage(m, t);
     return comp.future;
@@ -236,14 +253,9 @@ class Bridge extends ChangeNotifier {
       }
     };
 
-    final buf = req.writeToBuffer().toJS;
-    final m = <JSObject>{ch.port2, buf}.jsify() as JSArray;
-    final t =
-        <JSObject>{
-              ch.port2,
-              buf.getProperty('buffer'.toJS) as JSArrayBuffer,
-            }.jsify()
-            as JSArray;
+    final (view, ab) = _toTransferableBuffer(req.writeToBuffer());
+    final m = <JSObject>{ch.port2, view}.jsify() as JSArray;
+    final t = <JSObject>{ch.port2, ab}.jsify() as JSArray;
     _log.info('rpc stream: post message to $port');
     _worker.postMessage(m, t);
 

@@ -56,11 +56,10 @@ func onMessage(global js.Value, args []js.Value) any {
 	data := me.Get("data")
 	messagePort := data.Index(0)
 	b := data.Index(1)
+	message := make([]byte, b.Length())
+	js.CopyBytesToGo(message, b)
 
 	go func() {
-		message := make([]byte, b.Length())
-		js.CopyBytesToGo(message, b)
-
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 		defer cancel()
 		req := pb.Request{}
