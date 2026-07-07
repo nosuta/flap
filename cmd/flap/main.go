@@ -1,0 +1,112 @@
+package main
+
+import (
+	"fmt"
+	"os"
+)
+
+// defaultTemplateRepo is the canonical starter template repository.
+// Override with the FLAP_TEMPLATE environment variable (local path or remote URL).
+const defaultTemplateRepo = "https://github.com/nosuta/godash-starter"
+
+var requiredTools = []tool{
+	{name: "go", check: []string{"version"}, hint: "https://go.dev/dl/"},
+	{name: "flutter", check: []string{"--version"}, hint: "https://docs.flutter.dev/get-started/install"},
+	{name: "dart", check: []string{"--version"}, hint: "included with Flutter"},
+	{name: "git", check: []string{"--version"}, hint: "https://git-scm.com/"},
+	{name: "protoc", check: []string{"--version"}, hint: "https://grpc.io/docs/protoc-installation/"},
+	{name: "npm", check: []string{"--version"}, hint: "https://nodejs.org/"},
+	{name: "perl", check: []string{"--version"}, hint: "https://www.perl.org/get.html"},
+	{name: "tinygo", check: []string{"version"}, hint: "https://tinygo.org/getting-started/install/"},
+}
+
+type tool struct {
+	name  string
+	check []string
+	hint  string
+}
+
+func main() {
+	fmt.Printf("flap %s\n", Version)
+	fmt.Println()
+
+	// 1. dependency check
+	fmt.Println("Checking dependencies...")
+	if !checkDeps() {
+		os.Exit(1)
+	}
+	fmt.Printf("%s✓%s All dependencies found\n", colorGreen, colorReset)
+	fmt.Println()
+
+	// set version
+	if len(os.Args) > 1 {
+		v := os.Args[1]
+		if v == "latest" {
+			Version = "latest"
+		} else {
+			if err := checkRemoteTag(v); err != nil {
+				fatalf("%v", err)
+			}
+			Version = v
+		}
+	}
+	fmt.Printf("Using version %s\n", Version)
+	fmt.Println()
+
+	// 2. interactive prompts
+	cfg := promptConfig()
+	fmt.Println()
+
+	// cleanup on any failure after directory is created
+	cleanup := func() {
+		if _, err := os.Stat(cfg.dir); err == nil {
+			fmt.Fprintf(os.Stderr, "Cleaning up ./%s ...\n", cfg.dir)
+			os.RemoveAll(cfg.dir)
+		}
+	}
+
+	// 3. clone template
+	if err := cloneTemplate(cfg); err != nil {
+		fatalf("Failed to clone template: %v", err)
+	}
+
+	// 4. custom.mk
+	if err := setupCustomMk(cfg.dir); err != nil {
+		cleanup()
+		fatalf("Failed to create custom.mk: %v", err)
+	}
+
+	// 5. make prepare (creates android/ios/macos platform directories)
+	if err := runMake(cfg.dir, "Prepare environment", "prepare"); err != nil {
+		cleanup()
+		fatalf("Setup failed: %v", err)
+	}
+
+	// 6. apply config now that platform files exist
+	if err := applyConfig(cfg); err != nil {
+		cleanup()
+		fatalf("Failed to apply config: %v", err)
+	}
+
+	// 7. make prepare_go_wasm_test
+	if err := runMake(cfg.dir, "Prepare Go wasm test", "prepare_go_wasm_test"); err != nil {
+		cleanup()
+		fatalf("Wasm test setup failed: %v", err)
+	}
+
+	fmt.Println()
+	fmt.Printf("%s✓%s Project created at ./%s\n", colorGreen, colorReset, cfg.dir)
+	fmt.Println()
+	fmt.Printf("  cd %s\n", cfg.dir)
+	fmt.Println("  make -s prepare       # generate code and create platform dirs")
+	fmt.Println("  make -s web_run       # run in browser")
+	fmt.Println("  make -s web           # build for web release")
+	fmt.Println()
+	fmt.Println("  Native Android / iOS / macOS targets are commented out in the")
+	fmt.Println("  generated Makefile. Enable them after adding a native bridge plugin.")
+}
+
+func fatalf(format string, args ...any) {
+	fmt.Fprintf(os.Stderr, colorRed+"✗"+colorReset+" "+format+"\n", args...)
+	os.Exit(1)
+}

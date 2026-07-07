@@ -1,0 +1,24 @@
+name: "NativeLibrary"
+output: "../godash/lib/bridge/native_library.g.dart"
+headers:
+  entry-points:
+    - "exported.h"
+functions:
+  include:
+    - "InitializeDartAPI"
+    - "RPC"
+typedefs:
+  include:
+    - "BytesContainer"
+structs:
+  include:
+    - "BytesContainer"
+globals:
+  exclude:
+    - ".*"
+enums:
+  exclude:
+    - ".*"
+macros:
+  exclude:
+    - ".*"

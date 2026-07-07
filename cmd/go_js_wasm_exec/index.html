@@ -1,0 +1,36 @@
+<!doctype html>
+<!--
+Copyright 2018 The Go Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>Go wasm worker</title>
+</head>
+
+<body>
+	<script>
+		let exitCode = 0;
+		const worker = new Worker("worker.js");
+		worker.onmessage = (e) => {
+			if (e.data.type == "done") {
+				exitCode = e.data.exitCode;
+				document.querySelector("#doneButton").disabled = false;
+			} else {
+				console.error(e.data.msg);
+			}
+		};
+		worker.onerror = (e) => {
+			exitCode = 1;
+			console.error(`Worker error: ${e.message} at ${e.filename}:${e.lineno}:${e.colno}`);
+			document.querySelector("#doneButton").disabled = false;
+		};
+	</script>
+
+	<button id="doneButton" style="display: none;" disabled>Done</button>
+</body>
+
+</html>

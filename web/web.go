@@ -1,4 +1,7 @@
 // Package web provides the Web Worker entry point for godash.
+
+//go:build js
+
 package web
 
 import (

@@ -31,3 +31,10 @@ coverage/
 # Generated artifacts (keep committed for now as per project policy)
 # lib/pb/*.pb.dart
 # go/pb/*.pb.go
+
+# go_js_wasm_exec copies these from the app during prepare_go_wasm_test
+cmd/go_js_wasm_exec/sqlite3.js
+cmd/go_js_wasm_exec/sqlite3.wasm
+cmd/go_js_wasm_exec/sqlite3-opfs-async-proxy.js
+cmd/go_js_wasm_exec/scroll_worker.js
+cmd/go_js_wasm_exec/wasm_exec.js
