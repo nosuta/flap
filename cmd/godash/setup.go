@@ -9,8 +9,12 @@ import (
 )
 
 // templateSource returns the effective template source.
-// It prefers the FLAP_TEMPLATE environment variable, falling back to defaultTemplateRepo.
+// It prefers the GODASH_TEMPLATE environment variable, falling back to
+// defaultTemplateRepo. FLAP_TEMPLATE is accepted as a deprecated alias.
 func templateSource() string {
+	if s := os.Getenv("GODASH_TEMPLATE"); s != "" {
+		return s
+	}
 	if s := os.Getenv("FLAP_TEMPLATE"); s != "" {
 		return s
 	}

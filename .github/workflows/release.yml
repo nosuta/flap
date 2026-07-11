@@ -1,4 +1,4 @@
-name: Release flap CLI
+name: Release godash CLI
 
 on:
   push:
@@ -13,15 +13,15 @@ jobs:
           - os: ubuntu-latest
             goos: linux
             goarch: amd64
-            asset_name: flap-linux-x86_64
+            asset_name: godash-linux-x86_64
           - os: ubuntu-latest
             goos: linux
             goarch: arm64
-            asset_name: flap-linux-aarch64
+            asset_name: godash-linux-aarch64
           - os: macos-latest
             goos: darwin
             goarch: arm64
-            asset_name: flap-macos-arm64
+            asset_name: godash-macos-arm64
 
     runs-on: ${{ matrix.os }}
 
@@ -41,7 +41,7 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: "0"
         run: |
-          go build -ldflags="-X main.Version=${{ github.ref_name }}" -o dist/${{ matrix.asset_name }} ./cmd/flap
+          go build -ldflags="-X main.Version=${{ github.ref_name }}" -o dist/${{ matrix.asset_name }} ./cmd/godash
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

@@ -6,7 +6,8 @@ import (
 )
 
 // defaultTemplateRepo is the canonical starter template repository.
-// Override with the FLAP_TEMPLATE environment variable (local path or remote URL).
+// Override with the GODASH_TEMPLATE environment variable (local path or remote URL).
+// FLAP_TEMPLATE is also accepted as a deprecated alias.
 const defaultTemplateRepo = "https://github.com/nosuta/godash-starter"
 
 var requiredTools = []tool{
@@ -27,7 +28,7 @@ type tool struct {
 }
 
 func main() {
-	fmt.Printf("flap %s\n", Version)
+	fmt.Printf("godash %s\n", Version)
 	fmt.Println()
 
 	// 1. dependency check
@@ -101,9 +102,9 @@ func main() {
 	fmt.Println("  make -s prepare       # generate code and create platform dirs")
 	fmt.Println("  make -s web_run       # run in browser")
 	fmt.Println("  make -s web           # build for web release")
-	fmt.Println()
-	fmt.Println("  Native Android / iOS / macOS targets are commented out in the")
-	fmt.Println("  generated Makefile. Enable them after adding a native bridge plugin.")
+	fmt.Println("  make -s macos_run     # run on macOS (requires Xcode)")
+	fmt.Println("  make -s ios           # build iOS (requires Xcode)")
+	fmt.Println("  make -s apk           # build Android APK (requires Android SDK + NDK)")
 }
 
 func fatalf(format string, args ...any) {

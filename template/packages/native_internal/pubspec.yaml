@@ -1,0 +1,30 @@
+name: native_internal
+description: "Bundles the godash Go native library for Android / iOS / macOS."
+version: 0.0.1
+publish_to: none
+
+environment:
+  sdk: ^3.11.0
+  flutter: ">=3.41.0"
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  plugin_platform_interface: ^2.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.example.native_internal
+        pluginClass: NativeInternalPlugin
+      ios:
+        pluginClass: NativeInternalPlugin
+      macos:
+        pluginClass: NativeInternalPlugin

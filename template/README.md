@@ -52,19 +52,22 @@ make web_run
 
 ## Generating a new project from this template
 
-Use the `flap` CLI from the `godash` repository:
+Use the `godash` CLI from the `godash` repository:
 
 ```sh
-# Install flap
-go install github.com/nosuta/godash/cmd/flap@latest
+# Install godash
+go install github.com/nosuta/godash/cmd/godash@latest
 
 # Create a new project
-flap
+godash
 ```
 
-By default `flap` clones the published `godash-starter` template. To test
-against a local copy, set the `FLAP_TEMPLATE` environment variable:
+By default `godash` clones the published `godash-starter` template. To test
+against a local copy, set the `GODASH_TEMPLATE` environment variable:
 
 ```sh
-FLAP_TEMPLATE=/path/to/godash/template flap
+GODASH_TEMPLATE=/path/to/godash/template godash
 ```
+
+> The legacy `flap` command and `FLAP_TEMPLATE` environment variable still
+> work as aliases for backward compatibility.

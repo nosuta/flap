@@ -141,8 +141,125 @@ web/sqlite3.js:
 	cp /tmp/sqlite-wasm/sqlite-wasm-3530300/jswasm/sqlite3-opfs-async-proxy.js web/sqlite3-opfs-async-proxy.js
 	rm -rf /tmp/sqlite-wasm /tmp/sqlite-wasm.zip
 
-# Native builds (Android / iOS / macOS) require a native bridge plugin.
-# See README.md for how to add packages/native_internal or your own plugin.
+apk: proto android_lib_arm64-v8a android_lib_x86_64 ffi apply_go_licenses ## Build Android apk
+	flutter build apk --release --dart-define-from-file=core.env
+.PHONY: apk
+
+appbundle: proto android_lib_arm64-v8a android_lib_x86_64 ffi ## Build Android appbundle
+	flutter build appbundle --release --dart-define-from-file=core.env
+.PHONY: appbundle
+
+ios: proto ios_lib ffi apply_go_licenses ## Build for iOS
+	flutter build ios --release --dart-define-from-file=core.env
+.PHONY: ios
+
+macos_run: proto macos_lib ffi  ## Run for macOS (for testing)
+	flutter run -d macos --dart-define-from-file=core.env
+.PHONY: macos
+
+NDK_TOOLCHAIN=${NDK_PATH}/toolchains/llvm/prebuilt/darwin-x86_64/bin
+IOS_DEPLOYMENT_TARGET=13.0
+MACOS_DEPLOYMENT_TARGET=10.15
+MACOS_SDK=macosx
+MACOS_CC=$(shell xcrun --sdk $(MACOS_SDK) --find clang)
+MACOS_SDK_PATH=$(shell xcrun --sdk $(MACOS_SDK) --show-sdk-path)
+
+# Default native library name. Override in custom.mk if desired.
+LIB_NAME ?= libflap
+
+# Paths inside the bundled native_internal plugin. Override in custom.mk if
+# you swap in your own native bridge plugin.
+IOS_PLUGIN_DIR=packages/native_internal/ios
+MACOS_PLUGIN_DIR=packages/native_internal/macos
+ANDROID_PLUGIN_DIR=packages/native_internal/android/src/main/jniLibs
+
+XCFRAMEWORK_NAME=native_internal.xcframework
+IOS_FRAMEWORK_DIR=$(IOS_PLUGIN_DIR)/native_internal/Frameworks/$(XCFRAMEWORK_NAME)
+MACOS_FRAMEWORK_DIR=$(MACOS_PLUGIN_DIR)/native_internal/Frameworks/$(XCFRAMEWORK_NAME)
+
+define STAGE_PLUGIN_HEADER
+	cp go/build/$(1)/${LIB_NAME}.h $(2)/Headers/
+	cp go/build/$(1)/${LIB_NAME}.h exported.h
+endef
+
+define BUILD_ANDROID_SHARED_LIB
+	CGO_ENABLED=1 GOOS=android GOARCH=$(1) \
+	CC=$(2) \
+	go build -C go -ldflags="-w -s -extldflags=-Wl,-soname=${LIB_NAME}" -buildmode=c-shared -tags='android' \
+	-o build/$(3)/${LIB_NAME}.so .
+	mkdir -p $(ANDROID_PLUGIN_DIR)/$(4)
+	cp go/build/$(3)/${LIB_NAME}.so $(ANDROID_PLUGIN_DIR)/$(4)/
+	cp go/build/$(3)/${LIB_NAME}.h exported.h
+endef
+
+define BUILD_IOS_XCFRAMEWORK
+	mkdir -p go/build/ios-arm64 $(IOS_PLUGIN_DIR)/Headers $(dir $(IOS_FRAMEWORK_DIR))
+	CGO_ENABLED=1 GOOS=ios GOARCH=arm64 CGO_CFLAGS="-fembed-bitcode" DEPLOYMENT_TARGET=$(IOS_DEPLOYMENT_TARGET) \
+	SDK=iphoneos PLATFORM=ios CC=$(PWD)/clangwrap.sh \
+	go build -C go -buildmode=c-archive -trimpath -tags='ios' \
+	-o build/ios-arm64/${LIB_NAME}.a .
+	$(call STAGE_PLUGIN_HEADER,ios-arm64,$(IOS_PLUGIN_DIR))
+	rm -rf $(IOS_FRAMEWORK_DIR)
+	xcodebuild -create-xcframework \
+		-library go/build/ios-arm64/${LIB_NAME}.a -headers $(IOS_PLUGIN_DIR)/Headers \
+		-output $(IOS_FRAMEWORK_DIR)
+endef
+
+define BUILD_MACOS_XCFRAMEWORK
+	mkdir -p go/build/macos-arm64 $(MACOS_PLUGIN_DIR)/Headers $(dir $(MACOS_FRAMEWORK_DIR))
+	CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 SDK=$(MACOS_SDK) CC=$(MACOS_CC) \
+	CGO_CFLAGS="-isysroot $(MACOS_SDK_PATH) -mmacosx-version-min=$(MACOS_DEPLOYMENT_TARGET)" \
+	CGO_LDFLAGS="-isysroot $(MACOS_SDK_PATH) -mmacosx-version-min=$(MACOS_DEPLOYMENT_TARGET)" \
+	go build -C go -ldflags='-w -s' -buildmode=c-archive -trimpath -tags debug \
+	-o build/macos-arm64/${LIB_NAME}.a .
+	$(call STAGE_PLUGIN_HEADER,macos-arm64,$(MACOS_PLUGIN_DIR))
+	rm -rf $(MACOS_FRAMEWORK_DIR)
+	xcodebuild -create-xcframework \
+		-library go/build/macos-arm64/${LIB_NAME}.a -headers $(MACOS_PLUGIN_DIR)/Headers \
+		-output $(MACOS_FRAMEWORK_DIR)
+endef
+
+android_lib_arm64-v8a: go/dart_api/dart_api_dl.h ## Build Android arm64-v8a library
+	$(call BUILD_ANDROID_SHARED_LIB,arm64,$(NDK_TOOLCHAIN)/aarch64-linux-android21-clang,android-arm64-v8a,arm64-v8a)
+.PHONY: android_lib_arm64-v8a
+
+android_lib_x86_64: go/dart_api/dart_api_dl.h ## Build Android x86_64 library
+	$(call BUILD_ANDROID_SHARED_LIB,amd64,$(NDK_TOOLCHAIN)/x86_64-linux-android21-clang,android-x86_64,x86_64)
+.PHONY: android_lib_x86_64
+
+ios_lib: go/dart_api/dart_api_dl.h ## Build iOS native library
+	$(call BUILD_IOS_XCFRAMEWORK)
+.PHONY: ios_lib
+
+macos_lib: go/dart_api/dart_api_dl.h ## Build macOS native library
+	$(call BUILD_MACOS_XCFRAMEWORK)
+.PHONY: macos_lib
+
+go/dart_api/dart_api_dl.h:
+	$(call DART_API)
+
+dart_api: ## Update Dart C API headers
+	$(call DART_API)
+.PHONY: dart_api
+
+define DART_API
+	git clone --depth 1 --branch stable https://github.com/dart-lang/sdk /tmp/github.com/dart-lang/sdk
+	mkdir -p go/dart_api
+	cp -r /tmp/github.com/dart-lang/sdk/runtime/include/* go/dart_api/
+	cp /tmp/github.com/dart-lang/sdk/LICENSE go/dart_api/
+	rm -rf /tmp/github.com/dart-lang/sdk
+endef
+
+lib/bridge/native_library.g.dart: exported.h
+	$(call NATIVE_BRIDGE)
+
+ffi: exported.h ## Generate Dart native bridge
+	$(call NATIVE_BRIDGE)
+.PHONY: ffi
+
+define NATIVE_BRIDGE
+	dart run ffigen --config ffigen_config.yaml --verbose severe && flutter pub get
+endef
 
 proto: ## Generate protobuf code
 	$(call PROTO_GO)
@@ -224,6 +341,12 @@ clean: ## Clean all build artifacts
 	rm -rf go/build/
 	rm -rf go/pb/
 	rm -rf lib/pb/
+	rm -rf $(IOS_PLUGIN_DIR)/Headers
+	rm -rf $(MACOS_PLUGIN_DIR)/Headers
+	rm -rf $(IOS_FRAMEWORK_DIR)
+	rm -rf $(MACOS_FRAMEWORK_DIR)
+	rm -f $(ANDROID_PLUGIN_DIR)/x86_64/${LIB_NAME}.so
+	rm -f $(ANDROID_PLUGIN_DIR)/arm64-v8a/${LIB_NAME}.so
 	rm -f exported.h
 	rm -f lib/version/version.dart
 	flutter clean
@@ -236,8 +359,11 @@ reset: clean ## Reset the project to template state
 	rm -rf macos
 .PHONY: reset
 
-flap: ## Install flap CLI
-	go install -C $(GODASH_PATH) -ldflags="-X main.Version=latest" ./cmd/flap
+godash: ## Install godash CLI
+	go install -C $(GODASH_PATH) -ldflags="-X main.Version=latest" ./cmd/godash
+.PHONY: godash
+
+flap: godash ## Alias of `godash` (legacy name)
 .PHONY: flap
 
 help: ## Show this help

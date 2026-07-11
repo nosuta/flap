@@ -1,0 +1,35 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Flutter/Dart/Pub related
+/pubspec.lock
+**/doc/api/
+.dart_tool/
+.flutter-plugins-dependencies
+/build/
+/coverage/
+/ios/*.a
+/ios/*.xcframework/
+/ios/Headers/
+/ios/native_internal/Frameworks/
+/macos/*.a
+/macos/*.xcframework/
+/macos/Headers/
+/macos/native_internal/Frameworks/
