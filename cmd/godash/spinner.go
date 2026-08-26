@@ -11,6 +11,14 @@ import (
 
 var spinnerFrames = []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
 
+// ANSI color codes (kept here so every command file can use them).
+const (
+	colorReset  = "\033[0m"
+	colorGreen  = "\033[32m"
+	colorRed    = "\033[31m"
+	colorYellow = "\033[33m"
+)
+
 // task runs a command, showing a spinner and buffering output.
 // On success: clears the line and prints "✓ label".
 // On failure: prints the buffered output and returns the error.

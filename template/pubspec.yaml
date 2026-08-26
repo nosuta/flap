@@ -8,14 +8,11 @@ environment:
   sdk: ^3.12.0
   flutter: ^3.41.0
 
-workspace:
-  - packages/native_internal
-
 dependencies:
   godash:
     path: ../godash
   native_internal:
-    path: packages/native_internal
+    path: ../godash/packages/native_internal
 
   flutter:
     sdk: flutter
