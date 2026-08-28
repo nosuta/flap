@@ -8,8 +8,6 @@ import (
 
 	"github.com/nosuta/godash/pb"
 	"github.com/nosuta/godash/pusher"
-
-	"golang.org/x/exp/maps"
 )
 
 var instance *rpc
@@ -94,14 +92,17 @@ func (r *rpc) Call(ctx context.Context, req *pb.Request) chan []byte {
 		ctx, r.cancels[req.Port] = context.WithCancel(ctx)
 		r.mu.Unlock()
 		defer func() {
+			var remained []int64
 			r.mu.Lock()
 			if cancel, ok := r.cancels[req.Port]; ok {
 				cancel()
 				delete(r.cancels, req.Port)
 			}
+			for k := range r.cancels {
+				remained = append(remained, k)
+			}
 			r.mu.Unlock()
-			keys := maps.Keys(r.cancels)
-			slog.Info("remained ports in cancels", "list", keys)
+			slog.Info("remained ports in cancels", "list", remained)
 			close(ch)
 		}()
 

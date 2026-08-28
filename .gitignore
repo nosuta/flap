@@ -38,3 +38,8 @@ cmd/go_js_wasm_exec/sqlite3.wasm
 cmd/go_js_wasm_exec/sqlite3-opfs-async-proxy.js
 cmd/go_js_wasm_exec/scroll_worker.js
 cmd/go_js_wasm_exec/wasm_exec.js
+
+# benchmark build artifacts (see benchmark/RESULTS.md)
+benchmark/native/libbench.h
+benchmark/web/worker.wasm
+benchmark/web/wasm_exec.js

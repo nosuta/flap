@@ -4,14 +4,13 @@ import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:convert';
-import 'package:ffi/ffi.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:godash/pb/core.pb.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'native_bytes.dart';
 import 'native_library.g.dart';
 
 /// Configuration for the native [Bridge].
@@ -162,7 +161,7 @@ class Bridge extends ChangeNotifier {
     });
 
     final buf = req.writeToBuffer();
-    final payload = _bytesToBytesContainerPointer(buf);
+    final payload = bytesToBytesContainerPointer(buf);
     _lib.RPC(nativePort, payload);
 
     return comp.future;
@@ -222,7 +221,7 @@ class Bridge extends ChangeNotifier {
     };
 
     final buf = req.writeToBuffer();
-    final payload = _bytesToBytesContainerPointer(buf);
+    final payload = bytesToBytesContainerPointer(buf);
     _lib.RPC(nativePort, payload);
 
     return controller.stream;
@@ -232,19 +231,14 @@ class Bridge extends ChangeNotifier {
     if (pointerAddr is! int) {
       throw Exception('pointerAddr must be a pointer address');
     }
-    final (b, freeLater) = _pointerAddressToBytes(pointerAddr);
-    final resp = Response.fromBuffer(b);
-    malloc.free(freeLater);
-    return resp;
+    return responseFromPointerAddress(pointerAddr);
   }
 
   Future<void> _pushListener(dynamic pointerAddr) async {
     if (pointerAddr is! int) {
       throw Exception('pointerAddr must be a pointer address');
     }
-    final (b, freeLater) = _pointerAddressToBytes(pointerAddr);
-    final resp = Response.fromBuffer(b);
-    malloc.free(freeLater);
+    final resp = responseFromPointerAddress(pointerAddr);
     if (!resp.hasPush()) {
       return;
     }
@@ -267,37 +261,8 @@ class Bridge extends ChangeNotifier {
     }
   }
 
-  Pointer<BytesContainer> _bytesToBytesContainerPointer(Uint8List bytes) {
-    final n = bytes.length;
-    final bytesHeap = malloc<Uint8>(n);
-    bytesHeap.asTypedList(n).setRange(0, n, bytes);
-    final payload = calloc<BytesContainer>()
-      ..ref.size = n
-      ..ref.message = bytesHeap.cast<Void>();
-    return payload;
-  }
-
   String pointerAddressToString(int address) {
-    final (b, freeLater) = _pointerAddressToBytes(address);
-    final str = utf8.decode(b);
-    malloc.free(freeLater);
-    return str;
-  }
-
-  /// freeLater must be free after converting bytes (C heap) to a Dart object
-  (Uint8List bytes, Pointer<Void> freeLater) _pointerAddressToBytes(
-    int address,
-  ) {
-    final p = Pointer<BytesContainer>.fromAddress(address);
-    final pm = p.ref.message;
-    if (pm.address == nullptr.address) {
-      malloc.free(p);
-      throw Exception('message.address is null');
-    }
-    final b = pm.cast<Uint8>().asTypedList(p.ref.size);
-    final copy = Uint8List.fromList(b);
-    malloc.free(p);
-    return (copy, pm);
+    return stringFromPointerAddress(address);
   }
 
   static DynamicLibrary _dylib() {
