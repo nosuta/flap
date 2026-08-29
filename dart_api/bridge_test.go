@@ -49,8 +49,10 @@ func readContainer(t *testing.T, addr int64) (message []byte, size int) {
 	return
 }
 
-// Note on ownership: Dart frees both the message and the container (malloc.free
-// in bridge_native.dart). The test process cannot call C.free without cgo, so
+// Note on ownership: since the P1 allocator contract, Dart frees Go-allocated
+// response containers *through* the exported `FreeBytesContainer` symbol
+// (GoDash_FreeBytesContainer in bridge.c), never with its own malloc.free.
+// The test process cannot call that export without a live native library, so
 // allocations made here are intentionally leaked; the process exits right
 // after the test run, mirroring how a Dart app frees these buffers right
 // after parsing the response.

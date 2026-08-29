@@ -1,7 +1,9 @@
 // Tests for the pure FFI byte-conversion helpers extracted from the native
 // bridge. These exercise the Dart<->Go memory contract without a native
 // library: Dart allocates the request container, reads back response
-// containers and frees the C heap exactly like the bridge does.
+// containers and frees the C heap exactly like the bridge does. The
+// response-side free is wired to a Dart implementation mirroring the Go
+// `FreeBytesContainer` export (which frees message + container in one call).
 library;
 
 import 'dart:convert';
@@ -21,14 +23,22 @@ Pointer<BytesContainer> makeContainer(List<int> bytes) {
   return bytesToBytesContainerPointer(Uint8List.fromList(bytes));
 }
 
-/// Frees a request container the same way the Go side does (message first,
-/// then the container struct).
+/// Test stand-in for the Go-exported `FreeBytesContainer`: frees the message
+/// and the container struct in one call (message read before the struct is
+/// freed to avoid touching freed memory).
 void freeContainer(Pointer<BytesContainer> c) {
-  malloc.free(c.ref.message.cast<Uint8>());
+  final message = c.ref.message;
+  if (message.address != 0) {
+    malloc.free(message.cast<Uint8>());
+  }
   malloc.free(c);
 }
 
 void main() {
+  setUp(() {
+    configureResponseContainerFree(freeContainer);
+  });
+
   test('bytesToBytesContainerPointer roundtrip', () {
     final bytes = Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8]);
     final c = makeContainer(bytes);
@@ -62,22 +72,23 @@ void main() {
     freeContainer(c);
   });
 
-  test('pointerAddressToBytes roundtrip', () {
+  test('pointerAddressToBytes returns a zero-copy view', () {
     final bytes = Uint8List.fromList([9, 8, 7, 6, 5, 4, 3, 2, 1]);
     final c = makeContainer(bytes);
-    final (got, freeLater) = pointerAddressToBytes(c.address);
+    final (got, container) = pointerAddressToBytes(c.address);
     expect(got, bytes);
-    // The container struct is already freed by the helper; the message
-    // buffer must be freed by the caller (this is the bridge contract).
-    expect(freeLater.address, isNot(0));
-    malloc.free(freeLater);
+    // Nothing is freed by the helper: the caller owns both the view (until
+    // parse) and the container pointer (freed via the response free).
+    expect(container.address, c.address);
+    freeResponseContainer(container);
   });
 
   test('pointerAddressToBytes throws on null message', () {
     final c = calloc<BytesContainer>();
     c.ref.size = 0;
     c.ref.message = nullptr;
-    // The helper frees the container struct itself before throwing.
+    // The helper frees the whole container (via the configured free) before
+    // throwing.
     expect(() => pointerAddressToBytes(c.address), throwsException);
   });
 
@@ -86,9 +97,6 @@ void main() {
       rpcResponse: RpcResponse(payload: [1, 2, 3, 4, 5]),
     );
     final c = makeContainer(want.writeToBuffer());
-    // Capture the message pointer before the call: the container struct is
-    // freed inside pointerAddressToBytes, so reading c.ref afterwards would
-    // touch freed memory.
     final got = responseFromPointerAddress(c.address);
     expect(got.hasRpcResponse(), isTrue);
     expect(got.rpcResponse.payload, want.rpcResponse.payload);
@@ -124,8 +132,22 @@ void main() {
   test('stringFromPointerAddress roundtrip', () {
     for (final s in ['hello', '', 'こんにちは', '🙂👍']) {
       final c = makeContainer(utf8.encode(s));
-      // The message buffer is freed inside stringFromPointerAddress.
       expect(stringFromPointerAddress(c.address), s);
     }
+  });
+
+  test('free failure propagates out of the parse helpers', () {
+    configureResponseContainerFree(
+      (c) => throw StateError('free not configured'),
+    );
+    final c = makeContainer(Response(done: Done()).writeToBuffer());
+    expect(
+      () => responseFromPointerAddress(c.address),
+      throwsStateError,
+    );
+    // The container was not freed by the helper in this case.
+    freeContainer(c);
+    // Restore for other tests.
+    configureResponseContainerFree(freeContainer);
   });
 }

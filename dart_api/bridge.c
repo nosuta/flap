@@ -4,6 +4,30 @@
 #include "dart_api_dl.h"
 #include "bridge.h"
 
+// Mirror of the bytesContainer struct declared in the cgo preambles
+// (dart_api/bridge.go and the generated go/main.go). Layout on 64-bit
+// targets: message at offset 0, size at offset 8.
+typedef struct bytesContainer
+{
+    void *message;
+    int size;
+} BytesContainer;
+
+void GoDash_FreeBytesContainer(void *ptr)
+{
+    if (ptr == NULL)
+    {
+        return;
+    }
+    BytesContainer *bc = (BytesContainer *)ptr;
+    if (bc->message != NULL)
+    {
+        free(bc->message);
+        bc->message = NULL;
+    }
+    free(bc);
+}
+
 int64_t PointerAddr(void *ptr)
 {
     int64_t p = (int64_t)ptr;

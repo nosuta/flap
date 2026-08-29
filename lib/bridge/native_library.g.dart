@@ -41,6 +41,18 @@ class NativeLibrary {
       >('RPC');
   late final _RPC =
       _RPCPtr.asFunction<void Function(int, ffi.Pointer<BytesContainer>)>();
+
+  void FreeBytesContainer(ffi.Pointer<BytesContainer> payload) {
+    return _FreeBytesContainer(payload);
+  }
+
+  late final _FreeBytesContainerPtr = _lookup<
+    ffi.NativeFunction<ffi.Void Function(ffi.Pointer<BytesContainer>)>
+  >('FreeBytesContainer');
+  late final _FreeBytesContainer =
+      _FreeBytesContainerPtr.asFunction<
+        void Function(ffi.Pointer<BytesContainer>)
+      >();
 }
 
 final class __mbstate_t extends ffi.Union {

@@ -48,6 +48,9 @@ class Bridge extends ChangeNotifier {
       );
     }
     _log.info('native bridge instantiate');
+    // Response/push containers are allocated on the Go side; free them
+    // through the Go-exported symbol (see dart_api/bridge.h).
+    configureResponseContainerFree(_lib.FreeBytesContainer);
     _pushController = StreamController<Push>.broadcast();
     unawaited(_init());
   }
@@ -162,7 +165,10 @@ class Bridge extends ChangeNotifier {
 
     final buf = req.writeToBuffer();
     final payload = bytesToBytesContainerPointer(buf);
+    // The RPC export copies the request synchronously before spawning its
+    // goroutine, so the Dart-owned container can be freed right away.
     _lib.RPC(nativePort, payload);
+    freeBytesContainerPointer(payload);
 
     return comp.future;
   }
@@ -222,7 +228,10 @@ class Bridge extends ChangeNotifier {
 
     final buf = req.writeToBuffer();
     final payload = bytesToBytesContainerPointer(buf);
+    // The RPC export copies the request synchronously before spawning its
+    // goroutine, so the Dart-owned container can be freed right away.
     _lib.RPC(nativePort, payload);
+    freeBytesContainerPointer(payload);
 
     return controller.stream;
   }

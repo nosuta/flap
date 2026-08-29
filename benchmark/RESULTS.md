@@ -63,6 +63,33 @@ the real worker protocol: global Done handshake, Init exchange, then one
 fresh `MessageChannel` per echo call, timing each round trip with
 `performance.now()`.
 
+## P1 — Response zero-copy + allocator contract
+
+Re-measured after P1 (2026-08-29): response parsing now reads the C-heap
+`asTypedList` view directly (defensive `Uint8List.fromList` removed, B4) and
+response containers are freed through the Go-exported `FreeBytesContainer`
+symbol instead of Dart's `malloc.free` (B7 contract fixed). Same machine and
+harness as the baseline; A/B against the pre-P1 code stashed and re-run in the
+same session to cancel machine-load drift (baseline table above was recorded
+on a quieter machine and is not directly comparable).
+
+| payload | pre-P1 (same session) | P1 | delta |
+|---|---|---|---|
+| 64 B | p50 46.0 µs, mean 52.8 µs | p50 47.0 µs, mean 54.3 µs | ~noise |
+| 64 KiB | p50 86.0 µs, mean 101.7 µs | p50 84.0 µs, mean 114.7 µs | p50 −2 µs, tail noisy |
+
+Notes:
+
+- The round trip is dominated by the fixed goroutine + `ReceivePort` overhead
+  (B5, ~40–50 µs here), so removing one 64-byte memcpy barely moves the needle
+  on small payloads; the copy saving grows with payload size (p50 improved at
+  64 KiB). Tail percentiles on this loaded machine are noisy (max 2–3 ms
+  outliers in both runs).
+- P1 intentionally trades one cgo hop per response (the `FreeBytesContainer`
+  export, ~1 µs) for the removed memcpy — the win is the allocator-contract
+  correctness plus the zero-copy parse; bigger latency wins land in P2 (sync
+  unary path).
+
 ## Notes
 
 - The measured path includes protobuf `Request.writeToBuffer()` /

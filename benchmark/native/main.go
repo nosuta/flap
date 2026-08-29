@@ -17,6 +17,8 @@ typedef struct bytesContainer
     void *message;
     int size;
 } BytesContainer;
+
+extern void GoDash_FreeBytesContainer(void *ptr);
 */
 import "C"
 import (
@@ -46,9 +48,10 @@ func InitializeDartAPI(api unsafe.Pointer) C.int64_t {
 
 //export RPC
 func RPC(port C.int64_t, payload *C.BytesContainer) {
+	// The request container is allocated by Dart and freed by Dart right
+	// after this export returns (see the allocator contract in
+	// dart_api/bridge.h). Never free it here.
 	b := C.GoBytes(payload.message, payload.size)
-	C.free(unsafe.Pointer(payload.message))
-	C.free(unsafe.Pointer(payload))
 
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*10000)
@@ -83,4 +86,9 @@ func RPC(port C.int64_t, payload *C.BytesContainer) {
 			slog.Warn("dart_api.SendPointerAddress failed", "error", err.Error())
 		}
 	}()
+}
+
+//export FreeBytesContainer
+func FreeBytesContainer(payload *C.BytesContainer) {
+	C.GoDash_FreeBytesContainer(unsafe.Pointer(payload))
 }

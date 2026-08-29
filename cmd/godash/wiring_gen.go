@@ -276,6 +276,8 @@ typedef struct bytesContainer
     void *message;
     int size;
 } BytesContainer;
+
+extern void GoDash_FreeBytesContainer(void *ptr);
 */
 import "C"
 import (
@@ -329,9 +331,12 @@ func pusher(push *pb.Push, port int64) error {
 
 //export RPC
 func RPC(port C.int64_t, payload *C.BytesContainer) {
+	// The request container is allocated by Dart and freed by Dart right
+	// after this export returns (the C.GoBytes copy below happens
+	// synchronously on the calling thread, before the goroutine starts).
+	// Never free it here — cross-runtime frees are forbidden (see
+	// dart_api/bridge.h for the allocator contract).
 	b := C.GoBytes(payload.message, payload.size)
-	C.free(unsafe.Pointer(payload.message))
-	C.free(unsafe.Pointer(payload))
 
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*10000)
@@ -383,6 +388,14 @@ func RPC(port C.int64_t, payload *C.BytesContainer) {
 		// dart_api.ClosePort(int64(port))
 
 	}()
+}
+
+//export FreeBytesContainer
+func FreeBytesContainer(payload *C.BytesContainer) {
+	// Frees a response/push container that was allocated on the Go side
+	// (dart_api.BytesToPointerAddress). Dart must call this instead of
+	// malloc.free so the allocating C allocator also performs the free.
+	C.GoDash_FreeBytesContainer(unsafe.Pointer(payload))
 }
 `, mod.Name+"/rpc")
 }

@@ -60,15 +60,22 @@ benchmark numbers committed (in `benchmark/RESULTS.md`).
 
 ### P1 — Response zero-copy + allocator contract (low risk, high value)
 
-- [ ] `bridge_native.dart:_pointerAddressToBytes`: drop the `Uint8List.fromList` defensive
+- [x] `bridge_native.dart:_pointerAddressToBytes`: drop the `Uint8List.fromList` defensive
       copy; parse `Response.fromBuffer` directly from the `asTypedList` view, then free.
       (Safe: protobuf Dart parsing copies scalars/bytes into message objects.)
-- [ ] Same change in `_pushListener` and `pointerAddressToString`.
-- [ ] Unify the cross-heap allocator contract: decide one direction of frees
+      → `lib/bridge/native_bytes.dart:pointerAddressToBytes` returns the zero-copy view
+- [x] Same change in `_pushListener` and `pointerAddressToString`.
+      (both route through `responseFromPointerAddress` / `stringFromPointerAddress`)
+- [x] Unify the cross-heap allocator contract: decide one direction of frees
       (recommendation: whoever allocates frees; Go allocations freed by Go via an exported
       `free` symbol, Dart allocations freed by Dart). Update `dart_api/bridge.go`,
       `bridge.c/h`, and the generated `main.go` accordingly.
-- [ ] Re-run benchmark; expect 1 fewer memcpy per response/push.
+      → `GoDash_FreeBytesContainer` in `bridge.c/h`, exported as `FreeBytesContainer`
+      by the generated `main.go` (and bound in `native_library.g.dart`); the request
+      container is now freed by Dart right after the synchronous `RPC` export returns
+      (the Go-side copy-in happens on the calling thread).
+- [x] Re-run benchmark; expect 1 fewer memcpy per response/push.
+      → `benchmark/RESULTS.md` "P1" section (A/B vs pre-P1 in the same session)
 
 Acceptance: no copies of response bytes on the Dart side; tests green; benchmark delta recorded.
 
@@ -160,7 +167,7 @@ isolation headers. Opt-in only; skip until P5 is stable.
 | Phase | Status |
 |---|---|
 | P0 Test foundation | done (tests + baseline in `benchmark/RESULTS.md`) |
-| P1 Response zero-copy + allocator contract | not started |
+| P1 Response zero-copy + allocator contract | done (zero-copy parse + `FreeBytesContainer` contract; delta in `benchmark/RESULTS.md`) |
 | P2 Sync FFI unary path | not started |
 | P3 Typed hot-path C exports | not started |
 | P4 Request ownership transfer | not started |

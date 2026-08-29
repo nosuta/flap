@@ -35,7 +35,10 @@ func PointerAddr(bc unsafe.Pointer) C.int64_t {
 }
 
 func BytesToPointerAddress(b []byte) int64 {
-	// free bc in Dart
+	// Ownership: the container and its message buffer are allocated here with
+	// the C allocator and must be freed *through the Go-side free path*
+	// (Dart calls the exported `FreeBytesContainer` symbol, which runs
+	// GoDash_FreeBytesContainer in bridge.c) — never with Dart's malloc.free.
 	bc := (*C.BytesContainer)(C.malloc(C.size_t(C.sizeof_BytesContainer)))
 	bc.message = C.CBytes(b)
 	bc.size = C.int(len(b))

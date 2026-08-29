@@ -3,12 +3,16 @@
 /// Pure FFI byte-conversion helpers shared by the native [Bridge].
 ///
 /// These helpers own the cross-heap memory contract between Dart and Go:
-/// - Requests: Dart copies the serialized envelope into a malloc'd
-///   [BytesContainer]; the Go side frees both the message buffer and the
-///   container before dispatching (see generated `go/main.go`).
-/// - Responses/pushes: Go allocates via `BytesToPointerAddress`; Dart reads
-///   the message and frees the container immediately, then frees the message
-///   pointer after parsing (see [pointerAddressToBytes]).
+/// - Requests: Dart allocates the serialized envelope in a malloc'd
+///   [BytesContainer] (see [bytesToBytesContainerPointer]) and frees it with
+///   [freeBytesContainerPointer] right after the synchronous `RPC` export
+///   returns (the Go side copies the bytes in before spawning its goroutine).
+/// - Responses/pushes: Go allocates via `BytesToPointerAddress`; Dart parses
+///   directly from the `asTypedList` view (protobuf parsing copies the bytes
+///   into the message object, so no defensive copy is needed) and then frees
+///   the container *through the Go-exported `FreeBytesContainer` symbol*
+///   (see [configureResponseContainerFree]) — no buffer is ever freed by a
+///   different allocator than the one that allocated it.
 library;
 
 import 'dart:convert';
@@ -22,6 +26,7 @@ import 'package:godash/pb/core.pb.dart';
 import 'native_library.g.dart';
 
 /// Allocates a [BytesContainer] on the C heap holding a copy of [bytes].
+/// Dart owns this container and frees it via [freeBytesContainerPointer].
 Pointer<BytesContainer> bytesToBytesContainerPointer(Uint8List bytes) {
   final n = bytes.length;
   final bytesHeap = malloc<Uint8>(n);
@@ -32,36 +37,77 @@ Pointer<BytesContainer> bytesToBytesContainerPointer(Uint8List bytes) {
   return payload;
 }
 
-/// Reads the [BytesContainer] at [address] into a Dart-owned [Uint8List].
+/// Frees a [BytesContainer] allocated by [bytesToBytesContainerPointer]
+/// (Dart-owned request container). Must be called on the Dart side; the Go
+/// side never frees request containers.
+void freeBytesContainerPointer(Pointer<BytesContainer> payload) {
+  final message = payload.ref.message;
+  if (message.address != nullptr.address) {
+    malloc.free(message);
+  }
+  malloc.free(payload);
+}
+
+/// Signature of the native free for Go-allocated response containers.
+typedef ResponseContainerFree =
+    void Function(Pointer<BytesContainer> container);
+
+ResponseContainerFree _freeResponseContainer = _unconfiguredFree;
+
+void _unconfiguredFree(Pointer<BytesContainer> container) {
+  throw StateError(
+    'response container free not configured; '
+    'call configureResponseContainerFree(...) with the native '
+    '`FreeBytesContainer` binding before parsing responses',
+  );
+}
+
+/// Wires the Go-exported `FreeBytesContainer` symbol (which runs
+/// `GoDash_FreeBytesContainer` in dart_api/bridge.c) into the response
+/// helpers. The native bridge calls this once at startup; tests substitute
+/// a Dart-side implementation matching their own allocations.
+void configureResponseContainerFree(ResponseContainerFree free) {
+  _freeResponseContainer = free;
+}
+
+/// Reads the [BytesContainer] at [address] as a Dart view over the Go-owned
+/// C heap — zero copies.
 ///
-/// The container struct is freed immediately. The message buffer is returned
-/// as [freeLater] and must be freed by the caller once the bytes have been
-/// consumed (e.g. after parsing the protobuf envelope).
-(Uint8List bytes, Pointer<Void> freeLater) pointerAddressToBytes(int address) {
+/// Returns the message bytes as an `asTypedList` view plus the container
+/// pointer. The view is only valid until [container] is freed via
+/// [freeResponseContainer]; callers must parse the bytes (protobuf parsing
+/// copies everything it keeps) before freeing.
+(Uint8List bytes, Pointer<BytesContainer> container) pointerAddressToBytes(
+  int address,
+) {
   final p = Pointer<BytesContainer>.fromAddress(address);
   final pm = p.ref.message;
   if (pm.address == nullptr.address) {
-    malloc.free(p);
+    _freeResponseContainer(p);
     throw Exception('message.address is null');
   }
   final b = pm.cast<Uint8>().asTypedList(p.ref.size);
-  final copy = Uint8List.fromList(b);
-  malloc.free(p);
-  return (copy, pm);
+  return (b, p);
+}
+
+/// Frees a response container allocated on the Go side (message buffer +
+/// container struct) through the Go-side allocator.
+void freeResponseContainer(Pointer<BytesContainer> container) {
+  _freeResponseContainer(container);
 }
 
 /// Parses a [Response] delivered as a pointer address and frees the C heap.
 Response responseFromPointerAddress(int address) {
-  final (b, freeLater) = pointerAddressToBytes(address);
+  final (b, container) = pointerAddressToBytes(address);
   final resp = Response.fromBuffer(b);
-  malloc.free(freeLater);
+  freeResponseContainer(container);
   return resp;
 }
 
 /// Decodes a UTF-8 string delivered as a pointer address and frees the C heap.
 String stringFromPointerAddress(int address) {
-  final (b, freeLater) = pointerAddressToBytes(address);
+  final (b, container) = pointerAddressToBytes(address);
   final str = utf8.decode(b);
-  malloc.free(freeLater);
+  freeResponseContainer(container);
   return str;
 }

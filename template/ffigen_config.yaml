@@ -7,6 +7,7 @@ functions:
   include:
     - "InitializeDartAPI"
     - "RPC"
+    - "FreeBytesContainer"
 typedefs:
   include:
     - "BytesContainer"

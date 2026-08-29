@@ -41,6 +41,9 @@ void main(List<String> args) async {
   if (ret != 0) {
     throw StateError('InitializeDartAPI failed: $ret');
   }
+  // Free Go-allocated response containers through the Go-exported symbol,
+  // exactly like lib/bridge/bridge_native.dart does.
+  configureResponseContainerFree(lib.FreeBytesContainer);
 
   // Warmup (JIT + allocator paths).
   for (var i = 0; i < warmup; i++) {
@@ -109,12 +112,13 @@ Future<Uint8List> _roundTrip(
       comp.completeError(StateError('unexpected port message: $msg'));
       return;
     }
-    final (bytes, freeLater) = pointerAddressToBytes(msg);
+    // Zero-copy: parse straight from the C-heap view, then free via the
+    // Go-exported FreeBytesContainer (mirrors Bridge.pointerAddressToResponse).
+    final (bytes, container) = pointerAddressToBytes(msg);
     sub.cancel();
     port.close();
-    malloc.free(freeLater);
-    // Mirror Bridge.pointerAddressToResponse: parse the envelope, then free.
     final resp = Response.fromBuffer(bytes);
+    freeResponseContainer(container);
     if (resp.hasError()) {
       comp.completeError(
         StateError('rpc error (${resp.error.code}) ${resp.error.message}'),
@@ -129,7 +133,10 @@ Future<Uint8List> _roundTrip(
     rpcRequest: RpcRequest(path: echoPath, payload: payload),
   );
   final container = bytesToBytesContainerPointer(req.writeToBuffer());
+  // The RPC export copies the request synchronously before spawning its
+  // goroutine, so the Dart-owned container is freed right away.
   lib.RPC(nativePort, container);
+  freeBytesContainerPointer(container);
 
   final resp = await comp.future.timeout(const Duration(seconds: 10));
   return resp;
